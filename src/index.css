@@ -111,3 +111,10 @@
     to { opacity: 1; transform: translateY(0); }
   }
 }
+
+@layer utilities {
+  /* Globally enforce sharp edges across all components */
+  *, *::before, *::after {
+    border-radius: 0 !important;
+  }
+}
