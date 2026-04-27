@@ -1,8 +1,46 @@
 import { Link } from "react-router-dom";
-import { Mail, Phone, MapPin, Facebook, Instagram, Youtube } from "lucide-react";
+import { Mail, Phone, MapPin, Facebook, Instagram, Youtube, MessageCircle } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { useSetting } from "@/hooks/useSiteSettings";
+
+const footerFallback = {
+  tagline: "A warm, welcoming home for every member of our community — built on tradition, learning, and care for one another.",
+  columns: [
+    { title: "Explore", links: [
+      { label: "About Us", href: "/about" },
+      { label: "Events", href: "/events" },
+      { label: "Programs", href: "/programs" },
+      { label: "News", href: "/news" },
+      { label: "Gallery", href: "/gallery" },
+    ]},
+    { title: "Get Involved", links: [
+      { label: "Become a Member", href: "/membership" },
+      { label: "Donate", href: "/donate" },
+      { label: "Volunteer", href: "/programs" },
+      { label: "Contact Us", href: "/contact" },
+    ]},
+  ],
+};
+
+const contactFallback = { email: "hello@kisiijewish.org", phone: "+254 700 000 000", address: "Kisii Town, Kenya", hours: "" };
+const socialFallback = { facebook: "", instagram: "", youtube: "", whatsapp: "" };
 
 export const Footer = () => {
+  const { data: footer } = useSetting<any>("footer", footerFallback);
+  const { data: contact } = useSetting<any>("contact_info", contactFallback);
+  const { data: social } = useSetting<any>("social_links", socialFallback);
+
+  const f = footer ?? footerFallback;
+  const c = contact ?? contactFallback;
+  const s = social ?? socialFallback;
+
+  const socialIcons: Array<{ key: string; icon: any; label: string }> = [
+    { key: "facebook", icon: Facebook, label: "Facebook" },
+    { key: "instagram", icon: Instagram, label: "Instagram" },
+    { key: "youtube", icon: Youtube, label: "YouTube" },
+    { key: "whatsapp", icon: MessageCircle, label: "WhatsApp" },
+  ];
+
   return (
     <footer className="bg-primary text-primary-foreground mt-20">
       <div className="container mx-auto px-4 py-14 grid gap-10 md:grid-cols-4">
@@ -10,52 +48,52 @@ export const Footer = () => {
           <div className="mb-4 inline-block bg-primary-foreground/10 p-4 ring-1 ring-primary-foreground/15 backdrop-blur-sm">
             <Logo variant="footer" className="brightness-0 invert" />
           </div>
-          <p className="text-sm text-primary-foreground/75 leading-relaxed">
-            A warm, welcoming home for every member of our community — built on tradition, learning, and care for one another.
-          </p>
+          <p className="text-sm text-primary-foreground/75 leading-relaxed">{f.tagline}</p>
         </div>
 
-        <div>
-          <h4 className="font-display font-semibold text-base mb-4 text-accent">Explore</h4>
-          <ul className="space-y-2 text-sm text-primary-foreground/80">
-            <li><Link to="/about" className="hover:text-accent transition-smooth">About Us</Link></li>
-            <li><Link to="/events" className="hover:text-accent transition-smooth">Events</Link></li>
-            <li><Link to="/programs" className="hover:text-accent transition-smooth">Programs</Link></li>
-            <li><Link to="/news" className="hover:text-accent transition-smooth">News</Link></li>
-            <li><Link to="/gallery" className="hover:text-accent transition-smooth">Gallery</Link></li>
-          </ul>
-        </div>
+        {(f.columns ?? []).slice(0, 2).map((col: any, i: number) => (
+          <div key={i}>
+            <h4 className="font-display font-semibold text-base mb-4 text-primary-foreground">{col.title}</h4>
+            <ul className="space-y-2 text-sm text-primary-foreground/80">
+              {(col.links ?? []).map((l: any, li: number) => (
+                <li key={li}>
+                  <Link to={l.href} className="hover:text-primary-foreground transition-smooth">{l.label}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
 
         <div>
-          <h4 className="font-display font-semibold text-base mb-4 text-accent">Get Involved</h4>
-          <ul className="space-y-2 text-sm text-primary-foreground/80">
-            <li><Link to="/membership" className="hover:text-accent transition-smooth">Become a Member</Link></li>
-            <li><Link to="/donate" className="hover:text-accent transition-smooth">Donate</Link></li>
-            <li><Link to="/programs" className="hover:text-accent transition-smooth">Volunteer</Link></li>
-            <li><Link to="/contact" className="hover:text-accent transition-smooth">Contact Us</Link></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="font-display font-semibold text-base mb-4 text-accent">Contact</h4>
+          <h4 className="font-display font-semibold text-base mb-4 text-primary-foreground">Contact</h4>
           <ul className="space-y-3 text-sm text-primary-foreground/80">
-            <li className="flex items-start gap-2">
-              <MapPin className="h-4 w-4 mt-0.5 text-accent shrink-0" />
-              <span>Kisii Town, Kenya</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <Phone className="h-4 w-4 mt-0.5 text-accent shrink-0" />
-              <span>+254 700 000 000</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <Mail className="h-4 w-4 mt-0.5 text-accent shrink-0" />
-              <span>hello@kisiijewish.org</span>
-            </li>
+            {c.address && (
+              <li className="flex items-start gap-2">
+                <MapPin className="h-4 w-4 mt-0.5 text-primary-foreground/70 shrink-0" />
+                <span>{c.address}</span>
+              </li>
+            )}
+            {c.phone && (
+              <li className="flex items-start gap-2">
+                <Phone className="h-4 w-4 mt-0.5 text-primary-foreground/70 shrink-0" />
+                <span>{c.phone}</span>
+              </li>
+            )}
+            {c.email && (
+              <li className="flex items-start gap-2">
+                <Mail className="h-4 w-4 mt-0.5 text-primary-foreground/70 shrink-0" />
+                <span>{c.email}</span>
+              </li>
+            )}
           </ul>
           <div className="flex gap-3 mt-5">
-            <a href="#" className="h-9 w-9 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-accent hover:text-primary transition-smooth" aria-label="Facebook"><Facebook className="h-4 w-4" /></a>
-            <a href="#" className="h-9 w-9 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-accent hover:text-primary transition-smooth" aria-label="Instagram"><Instagram className="h-4 w-4" /></a>
-            <a href="#" className="h-9 w-9 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-accent hover:text-primary transition-smooth" aria-label="YouTube"><Youtube className="h-4 w-4" /></a>
+            {socialIcons.map(({ key, icon: Icon, label }) =>
+              s[key] ? (
+                <a key={key} href={s[key]} target="_blank" rel="noreferrer" className="h-9 w-9 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground hover:text-primary transition-smooth" aria-label={label}>
+                  <Icon className="h-4 w-4" />
+                </a>
+              ) : null
+            )}
           </div>
         </div>
       </div>
