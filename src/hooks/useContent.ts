@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useRealtimeInvalidate } from "./useRealtimeInvalidate";
 
-export const useEvents = (past = false) =>
-  useQuery({
+export const useEvents = (past = false) => {
+  useRealtimeInvalidate("events", ["events"]);
+  return useQuery({
     queryKey: ["events", past],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -14,9 +16,11 @@ export const useEvents = (past = false) =>
       return data;
     },
   });
+};
 
-export const useNews = () =>
-  useQuery({
+export const useNews = () => {
+  useRealtimeInvalidate("news_posts", ["news"]);
+  return useQuery({
     queryKey: ["news"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -27,9 +31,11 @@ export const useNews = () =>
       return data;
     },
   });
+};
 
-export const useAnnouncements = () =>
-  useQuery({
+export const useAnnouncements = () => {
+  useRealtimeInvalidate("announcements", ["announcements"]);
+  return useQuery({
     queryKey: ["announcements"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -41,9 +47,12 @@ export const useAnnouncements = () =>
       return data;
     },
   });
+};
 
-export const useAlbums = () =>
-  useQuery({
+export const useAlbums = () => {
+  useRealtimeInvalidate("gallery_albums", ["albums"]);
+  useRealtimeInvalidate("gallery_photos", ["albums"]);
+  return useQuery({
     queryKey: ["albums"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -54,3 +63,4 @@ export const useAlbums = () =>
       return data;
     },
   });
+};
