@@ -319,8 +319,8 @@ const Home = () => {
 
         <div className="container mx-auto px-4 mt-10">
           <Accordion type="single" collapsible className="w-full">
-            {priorities.map((p) => (
-              <AccordionItem key={p.key} value={p.key} className="border-b border-border">
+            {priorities.map((p, i) => (
+              <AccordionItem key={i} value={`item-${i}`} className="border-b border-border">
                 <AccordionTrigger className="py-5 hover:no-underline">
                   <span className="inline-flex items-center justify-center bg-sky text-sky-foreground font-display font-extrabold uppercase tracking-wider px-4 py-2 text-sm md:text-base">
                     {p.label}
@@ -344,18 +344,14 @@ const Home = () => {
       <section className="bg-sky-soft py-14">
         <div className="container mx-auto px-4 text-center">
           <h2 className="font-display text-3xl md:text-5xl font-extrabold uppercase text-primary">
-            Will you stand with our community?
+            {ctaStrip.heading}
           </h2>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <Button asChild variant="outline" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase tracking-wider font-semibold px-8">
-              <Link to="/donate">Donate</Link>
-            </Button>
-            <Button asChild variant="outline" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase tracking-wider font-semibold px-8">
-              <Link to="/membership">Get Involved</Link>
-            </Button>
-            <Button asChild variant="outline" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase tracking-wider font-semibold px-8">
-              <Link to="/contact">Contact Us</Link>
-            </Button>
+            {(ctaStrip.buttons ?? []).map((b: any, i: number) => (
+              <Button key={i} asChild variant="outline" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase tracking-wider font-semibold px-8">
+                <Link to={b.href}>{b.label}</Link>
+              </Button>
+            ))}
           </div>
         </div>
       </section>
