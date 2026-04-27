@@ -24,30 +24,44 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useAnnouncements, useEvents, useNews } from "@/hooks/useContent";
+import { useSetting } from "@/hooks/useSiteSettings";
 import { format, parseISO } from "date-fns";
 
-const priorities = [
-  {
-    key: "heritage",
-    label: "Heritage",
-    body: "Preserving the traditions, language, and stories that shape who we are — for our children and the generations to come.",
-  },
-  {
-    key: "education",
-    label: "Education",
-    body: "Hebrew classes, Torah study, and lifelong learning circles open to every member of the community.",
-  },
-  {
-    key: "support",
-    label: "Community Support",
-    body: "Caring for elders, families in need, and welcoming newcomers with warmth and practical help.",
-  },
-  {
-    key: "youth",
-    label: "Youth & Identity",
-    body: "Investing in the next generation through mentorship, leadership retreats, and proud Jewish identity.",
-  },
+const heroFallback = {
+  eyebrow: "KISIIJEWISH",
+  title: "COMMUNITY",
+  subtitle: "TOGETHER · 2026",
+  tagline: ["Faith", "Family", "Tradition"],
+  image_url: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1800",
+  cta_label: "2026 Community Gathering",
+  primary_cta: { label: "Register", href: "/events" },
+  secondary_cta: { label: "Join Us", href: "/membership" },
+};
+
+const promiseFallback = {
+  headline_top: "OUR",
+  headline_mid: "COMMUNITY",
+  headline_bottom: "PROMISE",
+  line1: "Proudly Jewish.",
+  line2: "Standing together — it's what we do.",
+  video_image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1200",
+};
+
+const prioritiesFallback = [
+  { label: "Heritage", body: "Preserving the traditions, language, and stories that shape who we are — for our children and the generations to come." },
+  { label: "Education", body: "Hebrew classes, Torah study, and lifelong learning circles open to every member of the community." },
+  { label: "Community Support", body: "Caring for elders, families in need, and welcoming newcomers with warmth and practical help." },
+  { label: "Youth & Identity", body: "Investing in the next generation through mentorship, leadership retreats, and proud Jewish identity." },
 ];
+
+const ctaStripFallback = {
+  heading: "Will you stand with our community?",
+  buttons: [
+    { label: "Donate", href: "/donate" },
+    { label: "Get Involved", href: "/membership" },
+    { label: "Contact Us", href: "/contact" },
+  ],
+};
 
 const discoverTiles = [
   { icon: Users, label: "Community Directory", to: "/about" },
@@ -62,11 +76,21 @@ const Home = () => {
   const { data: announcements } = useAnnouncements();
   const { data: events } = useEvents(false);
   const { data: news } = useNews();
+  const { data: heroData } = useSetting<any>("hero", heroFallback);
+  const { data: promiseData } = useSetting<any>("promise", promiseFallback);
+  const { data: prioritiesData } = useSetting<any[]>("priorities", prioritiesFallback);
+  const { data: ctaStripData } = useSetting<any>("cta_strip", ctaStripFallback);
+
+  const hero = heroData ?? heroFallback;
+  const promise = promiseData ?? promiseFallback;
+  const priorities = (prioritiesData ?? prioritiesFallback) as Array<{ label: string; body: string }>;
+  const ctaStrip = ctaStripData ?? ctaStripFallback;
 
   const featuredEvent = events?.[0];
   const slides = announcements ?? [];
   const [slide, setSlide] = useState(0);
   const current = slides[slide % Math.max(slides.length, 1)];
+
 
   const featuredNews = news?.slice(0, 3) ?? [];
 
