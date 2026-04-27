@@ -30,6 +30,10 @@
     --accent-foreground: 217 55% 14%;
     --accent-soft: 41 70% 88%;
 
+    --sky: 199 89% 56%;                /* bright community blue */
+    --sky-foreground: 0 0% 100%;
+    --sky-soft: 199 95% 92%;
+
     --destructive: 0 70% 45%;
     --destructive-foreground: 0 0% 100%;
 
