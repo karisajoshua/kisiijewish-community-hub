@@ -126,6 +126,9 @@ export const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAdmin } = useAuth();
+  const signOut = async () => { await supabase.auth.signOut(); navigate("/"); };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
