@@ -24,6 +24,10 @@ type FormData = z.infer<typeof schema>;
 const Contact = () => {
   const [submitting, setSubmitting] = useState(false);
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({ resolver: zodResolver(schema) });
+  const { data: contact } = useSetting<any>("contact_info", { email: "hello@kisiijewish.org", phone: "+254 700 000 000", address: "Kisii Town, Kenya" });
+  const { data: social } = useSetting<any>("social_links", { facebook: "", instagram: "", youtube: "", whatsapp: "" });
+  const c = contact ?? {};
+  const s = social ?? {};
 
   const onSubmit = async (data: FormData) => {
     setSubmitting(true);
