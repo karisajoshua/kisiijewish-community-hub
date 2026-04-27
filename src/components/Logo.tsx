@@ -10,8 +10,8 @@ export const Logo = ({
 }) => {
   const sizes =
     variant === "footer"
-      ? "h-16 md:h-20 w-auto"
-      : "h-10 md:h-12 w-auto";
+      ? "h-24 md:h-28 w-auto"
+      : "h-16 md:h-20 lg:h-24 w-auto";
   return (
     <img
       src={logoSrc}

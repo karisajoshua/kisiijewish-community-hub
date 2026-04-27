@@ -145,7 +145,7 @@ export const Navbar = () => {
           : "bg-background/85 backdrop-blur-sm",
       )}
     >
-      <div className="container mx-auto flex h-20 items-center justify-between px-4 gap-4">
+      <div className="container mx-auto flex h-24 lg:h-28 items-center justify-between px-4 gap-4">
         <Link to="/" className="flex items-center shrink-0" aria-label="Kisii Jewish Community — Home">
           <Logo variant="navbar" />
         </Link>
