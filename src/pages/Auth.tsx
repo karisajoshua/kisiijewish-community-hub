@@ -8,7 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Star } from "lucide-react";
+import { Logo } from "@/components/Logo";
+
+const redirectByRole = async (navigate: (p: string) => void, userId: string) => {
+  const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+  const isAdmin = (roles ?? []).some((r: any) => r.role === "admin");
+  navigate(isAdmin ? "/admin" : "/account");
+};
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -18,10 +24,10 @@ const Auth = () => {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate("/admin");
+      if (data.session) redirectByRole(navigate, data.session.user.id);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) navigate("/admin");
+      if (session) setTimeout(() => redirectByRole(navigate, session.user.id), 0);
     });
     return () => sub.subscription.unsubscribe();
   }, [navigate]);
@@ -40,26 +46,23 @@ const Auth = () => {
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email, password,
-      options: { emailRedirectTo: window.location.origin + "/admin" },
+      options: { emailRedirectTo: window.location.origin + "/account" },
     });
     setLoading(false);
     if (error) toast.error(error.message);
-    else toast.success("Account created!");
+    else toast.success("Account created! Check your email to verify.");
   };
 
   const handleGoogle = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/admin" });
+    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/account" });
     if (result.error) toast.error("Google sign-in failed");
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center gradient-warm px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-sky-soft px-4 py-12">
       <Card className="w-full max-w-md p-8 border-border bg-card shadow-soft">
-        <Link to="/" className="flex items-center justify-center gap-2 mb-6">
-          <div className="h-10 w-10 rounded-full gradient-gold flex items-center justify-center shadow-gold">
-            <Star className="h-5 w-5 text-primary" strokeWidth={2.5} />
-          </div>
-          <div className="font-display font-bold text-primary text-xl">Kisiijewish</div>
+        <Link to="/" className="flex items-center justify-center mb-6">
+          <Logo variant="navbar" className="h-16 w-auto" />
         </Link>
         <Tabs defaultValue="signin">
           <TabsList className="grid w-full grid-cols-2">
@@ -70,14 +73,14 @@ const Auth = () => {
             <form onSubmit={handleSignIn} className="space-y-4 mt-4">
               <div><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
               <div><Label>Password</Label><Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required /></div>
-              <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary-glow">Sign in</Button>
+              <Button type="submit" disabled={loading} className="w-full bg-sky text-sky-foreground hover:bg-sky/90">Sign in</Button>
             </form>
           </TabsContent>
           <TabsContent value="signup">
             <form onSubmit={handleSignUp} className="space-y-4 mt-4">
               <div><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
               <div><Label>Password</Label><Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} /></div>
-              <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary-glow">Create account</Button>
+              <Button type="submit" disabled={loading} className="w-full bg-sky text-sky-foreground hover:bg-sky/90">Create account</Button>
               <p className="text-xs text-muted-foreground text-center">The first account becomes the admin.</p>
             </form>
           </TabsContent>
@@ -86,7 +89,7 @@ const Auth = () => {
           <div className="relative my-3"><div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div><div className="relative flex justify-center"><span className="bg-card px-2 text-xs text-muted-foreground uppercase">or</span></div></div>
           <Button variant="outline" onClick={handleGoogle} className="w-full">Continue with Google</Button>
         </div>
-        <p className="text-center text-xs text-muted-foreground mt-5"><Link to="/" className="hover:text-accent">← Back to site</Link></p>
+        <p className="text-center text-xs text-muted-foreground mt-5"><Link to="/" className="hover:text-sky">← Back to site</Link></p>
       </Card>
     </div>
   );

@@ -1,7 +1,10 @@
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, User as UserIcon, Shield, LogOut, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Accordion,
   AccordionContent,
@@ -123,6 +126,9 @@ export const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAdmin } = useAuth();
+  const signOut = async () => { await supabase.auth.signOut(); navigate("/"); };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -221,6 +227,26 @@ export const Navbar = () => {
         </div>
 
         <div className="hidden lg:flex items-center gap-2 shrink-0">
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <div className="h-7 w-7 rounded-full bg-sky text-sky-foreground flex items-center justify-center text-xs font-bold">
+                    {(user.email ?? "?")[0].toUpperCase()}
+                  </div>
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem asChild><Link to="/account"><UserIcon className="h-4 w-4 mr-2" /> My Account</Link></DropdownMenuItem>
+                {isAdmin && <DropdownMenuItem asChild><Link to="/admin"><Shield className="h-4 w-4 mr-2" /> Admin Dashboard</Link></DropdownMenuItem>}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={signOut}><LogOut className="h-4 w-4 mr-2" /> Sign out</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button asChild variant="ghost" size="sm"><Link to="/auth"><LogIn className="h-4 w-4 mr-1" /> Sign in</Link></Button>
+          )}
           <Button
             asChild
             size="sm"
@@ -295,6 +321,16 @@ export const Navbar = () => {
             >
               <Link to="/membership">Join Us</Link>
             </Button>
+
+            {user ? (
+              <div className="mt-2 flex flex-col gap-1">
+                <Button asChild variant="outline" className="w-full"><Link to="/account"><UserIcon className="h-4 w-4 mr-1" /> My Account</Link></Button>
+                {isAdmin && <Button asChild variant="outline" className="w-full"><Link to="/admin"><Shield className="h-4 w-4 mr-1" /> Admin</Link></Button>}
+                <Button variant="ghost" className="w-full" onClick={signOut}><LogOut className="h-4 w-4 mr-1" /> Sign out</Button>
+              </div>
+            ) : (
+              <Button asChild variant="outline" className="mt-2 w-full"><Link to="/auth"><LogIn className="h-4 w-4 mr-1" /> Sign in</Link></Button>
+            )}
           </nav>
         </div>
       )}
