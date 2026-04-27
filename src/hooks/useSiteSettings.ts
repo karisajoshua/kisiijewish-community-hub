@@ -15,7 +15,7 @@ export const useSetting = <T = any>(key: string, fallback?: T) => {
       if (error) throw error;
       return ((data?.value as unknown) as T) ?? (fallback as T);
     },
-    placeholderData: fallback as T,
+    placeholderData: fallback as any,
   });
 };
 
