@@ -24,30 +24,44 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useAnnouncements, useEvents, useNews } from "@/hooks/useContent";
+import { useSetting } from "@/hooks/useSiteSettings";
 import { format, parseISO } from "date-fns";
 
-const priorities = [
-  {
-    key: "heritage",
-    label: "Heritage",
-    body: "Preserving the traditions, language, and stories that shape who we are — for our children and the generations to come.",
-  },
-  {
-    key: "education",
-    label: "Education",
-    body: "Hebrew classes, Torah study, and lifelong learning circles open to every member of the community.",
-  },
-  {
-    key: "support",
-    label: "Community Support",
-    body: "Caring for elders, families in need, and welcoming newcomers with warmth and practical help.",
-  },
-  {
-    key: "youth",
-    label: "Youth & Identity",
-    body: "Investing in the next generation through mentorship, leadership retreats, and proud Jewish identity.",
-  },
+const heroFallback = {
+  eyebrow: "KISIIJEWISH",
+  title: "COMMUNITY",
+  subtitle: "TOGETHER · 2026",
+  tagline: ["Faith", "Family", "Tradition"],
+  image_url: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1800",
+  cta_label: "2026 Community Gathering",
+  primary_cta: { label: "Register", href: "/events" },
+  secondary_cta: { label: "Join Us", href: "/membership" },
+};
+
+const promiseFallback = {
+  headline_top: "OUR",
+  headline_mid: "COMMUNITY",
+  headline_bottom: "PROMISE",
+  line1: "Proudly Jewish.",
+  line2: "Standing together — it's what we do.",
+  video_image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1200",
+};
+
+const prioritiesFallback = [
+  { label: "Heritage", body: "Preserving the traditions, language, and stories that shape who we are — for our children and the generations to come." },
+  { label: "Education", body: "Hebrew classes, Torah study, and lifelong learning circles open to every member of the community." },
+  { label: "Community Support", body: "Caring for elders, families in need, and welcoming newcomers with warmth and practical help." },
+  { label: "Youth & Identity", body: "Investing in the next generation through mentorship, leadership retreats, and proud Jewish identity." },
 ];
+
+const ctaStripFallback = {
+  heading: "Will you stand with our community?",
+  buttons: [
+    { label: "Donate", href: "/donate" },
+    { label: "Get Involved", href: "/membership" },
+    { label: "Contact Us", href: "/contact" },
+  ],
+};
 
 const discoverTiles = [
   { icon: Users, label: "Community Directory", to: "/about" },
@@ -62,11 +76,21 @@ const Home = () => {
   const { data: announcements } = useAnnouncements();
   const { data: events } = useEvents(false);
   const { data: news } = useNews();
+  const { data: heroData } = useSetting<any>("hero", heroFallback);
+  const { data: promiseData } = useSetting<any>("promise", promiseFallback);
+  const { data: prioritiesData } = useSetting<any[]>("priorities", prioritiesFallback);
+  const { data: ctaStripData } = useSetting<any>("cta_strip", ctaStripFallback);
+
+  const hero = heroData ?? heroFallback;
+  const promise = promiseData ?? promiseFallback;
+  const priorities = (prioritiesData ?? prioritiesFallback) as Array<{ label: string; body: string }>;
+  const ctaStrip = ctaStripData ?? ctaStripFallback;
 
   const featuredEvent = events?.[0];
   const slides = announcements ?? [];
   const [slide, setSlide] = useState(0);
   const current = slides[slide % Math.max(slides.length, 1)];
+
 
   const featuredNews = news?.slice(0, 3) ?? [];
 
@@ -76,11 +100,8 @@ const Home = () => {
       <section className="relative">
         <div className="relative h-[60vh] min-h-[420px] max-h-[640px] overflow-hidden">
           <img
-            src={
-              featuredEvent?.image_url ||
-              "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1800"
-            }
-            alt={featuredEvent?.title || "Community gathering"}
+            src={hero.image_url || featuredEvent?.image_url || "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1800"}
+            alt={hero.title || featuredEvent?.title || "Community gathering"}
             className="absolute inset-0 h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-primary/40 via-transparent to-transparent" />
@@ -89,21 +110,20 @@ const Home = () => {
           <div className="absolute inset-0 flex items-center justify-center px-4">
             <div className="bg-sky/95 text-sky-foreground rounded-md shadow-soft px-8 py-7 md:px-12 md:py-10 max-w-2xl text-center fade-in-up">
               <div className="font-display font-extrabold leading-[0.95] tracking-tight">
-                <span className="block text-2xl md:text-3xl">KISIIJEWISH</span>
-                <span className="block text-5xl md:text-7xl mt-1">
-                  COMMUNITY
-                </span>
-                <span className="block text-base md:text-lg font-semibold tracking-[0.3em] mt-3">
-                  TOGETHER · 2026
-                </span>
+                {hero.eyebrow && <span className="block text-2xl md:text-3xl">{hero.eyebrow}</span>}
+                {hero.title && <span className="block text-5xl md:text-7xl mt-1">{hero.title}</span>}
+                {hero.subtitle && <span className="block text-base md:text-lg font-semibold tracking-[0.3em] mt-3">{hero.subtitle}</span>}
               </div>
-              <div className="mt-5 flex items-center justify-center gap-4 text-xs md:text-sm font-semibold uppercase tracking-wider text-sky-foreground/90">
-                <span>Faith</span>
-                <span className="h-1 w-1 rounded-full bg-sky-foreground/70" />
-                <span>Family</span>
-                <span className="h-1 w-1 rounded-full bg-sky-foreground/70" />
-                <span>Tradition</span>
-              </div>
+              {(hero.tagline ?? []).length > 0 && (
+                <div className="mt-5 flex items-center justify-center gap-4 text-xs md:text-sm font-semibold uppercase tracking-wider text-sky-foreground/90">
+                  {(hero.tagline ?? []).map((w: string, i: number) => (
+                    <span key={i} className="flex items-center gap-4">
+                      {i > 0 && <span className="h-1 w-1 rounded-full bg-sky-foreground/70" />}
+                      <span>{w}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -112,23 +132,19 @@ const Home = () => {
         <div className="bg-primary text-primary-foreground">
           <div className="container mx-auto px-4 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="text-sm md:text-base font-semibold uppercase tracking-wider">
-              {featuredEvent
-                ? featuredEvent.title
-                : "2026 Community Gathering"}
+              {hero.cta_label || featuredEvent?.title || "2026 Community Gathering"}
             </div>
             <div className="flex flex-wrap gap-3">
-              <Button
-                asChild
-                className="bg-background text-primary hover:bg-background/90 font-semibold uppercase tracking-wider"
-              >
-                <Link to="/events">Register</Link>
-              </Button>
-              <Button
-                asChild
-                className="bg-background text-primary hover:bg-background/90 font-semibold uppercase tracking-wider"
-              >
-                <Link to="/membership">Join Us</Link>
-              </Button>
+              {hero.primary_cta?.label && (
+                <Button asChild className="bg-background text-primary hover:bg-background/90 font-semibold uppercase tracking-wider">
+                  <Link to={hero.primary_cta?.href || "/events"}>{hero.primary_cta.label}</Link>
+                </Button>
+              )}
+              {hero.secondary_cta?.label && (
+                <Button asChild className="bg-background text-primary hover:bg-background/90 font-semibold uppercase tracking-wider">
+                  <Link to={hero.secondary_cta?.href || "/membership"}>{hero.secondary_cta.label}</Link>
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -303,8 +319,8 @@ const Home = () => {
 
         <div className="container mx-auto px-4 mt-10">
           <Accordion type="single" collapsible className="w-full">
-            {priorities.map((p) => (
-              <AccordionItem key={p.key} value={p.key} className="border-b border-border">
+            {priorities.map((p, i) => (
+              <AccordionItem key={i} value={`item-${i}`} className="border-b border-border">
                 <AccordionTrigger className="py-5 hover:no-underline">
                   <span className="inline-flex items-center justify-center bg-sky text-sky-foreground font-display font-extrabold uppercase tracking-wider px-4 py-2 text-sm md:text-base">
                     {p.label}
@@ -328,18 +344,14 @@ const Home = () => {
       <section className="bg-sky-soft py-14">
         <div className="container mx-auto px-4 text-center">
           <h2 className="font-display text-3xl md:text-5xl font-extrabold uppercase text-primary">
-            Will you stand with our community?
+            {ctaStrip.heading}
           </h2>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <Button asChild variant="outline" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase tracking-wider font-semibold px-8">
-              <Link to="/donate">Donate</Link>
-            </Button>
-            <Button asChild variant="outline" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase tracking-wider font-semibold px-8">
-              <Link to="/membership">Get Involved</Link>
-            </Button>
-            <Button asChild variant="outline" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase tracking-wider font-semibold px-8">
-              <Link to="/contact">Contact Us</Link>
-            </Button>
+            {(ctaStrip.buttons ?? []).map((b: any, i: number) => (
+              <Button key={i} asChild variant="outline" className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground uppercase tracking-wider font-semibold px-8">
+                <Link to={b.href}>{b.label}</Link>
+              </Button>
+            ))}
           </div>
         </div>
       </section>

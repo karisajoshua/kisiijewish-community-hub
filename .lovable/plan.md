@@ -1,137 +1,72 @@
-## Goal
+# Live CMS + Realtime Updates
 
-Turn the existing minimal Admin into a full Content Management System covering **every section of the public site**, and clean up the auth flow so:
+Right now the admin dashboard saves edits to the database, but the public pages don't read from those tables — they show hardcoded text and images. On top of that, even the components that *do* read live data (events, news, announcements) only refetch on page load. We'll fix both: wire every public surface to the CMS, and add realtime so changes appear within ~1 second of saving.
 
-- **Visitors** can browse the site.
-- **Members** can sign up / sign in (email+password and Google), view their profile, and submit applications/RSVPs as a logged-in user.
-- **Admins** can log in to a full dashboard and **create, edit, delete, and reorder** content for every page — not just add.
+## What you'll get
 
-No new dependencies needed — uses existing shadcn UI, Supabase, and Lovable Cloud auth.
+- Edits in `/admin/homepage`, `/admin/site-settings`, `/admin/footer` immediately update the public site
+- Adding/editing/deleting events, news, announcements, gallery albums updates public pages instantly — no refresh
+- Multiple browser tabs (e.g. admin in one, site in another) stay in sync
 
----
+## Changes
 
-## 1. Public Auth experience
+### 1. Realtime infrastructure
 
-**`/auth` page (existing — polish only)**
-- Keep email/password + Google sign-in (already wired via `lovable.auth.signInWithOAuth`).
-- After login: members go to `/account`, admins go to `/admin`.
-- Replace gold accents with the new community blue (consistent with rebrand).
+- Enable Postgres realtime on the CMS tables: `site_settings`, `events`, `news_posts`, `announcements`, `gallery_albums`, `gallery_photos`, `profiles`
+- New hook `useRealtimeInvalidate(table, queryKey)` — subscribes to a table and invalidates the matching React Query cache on any insert/update/delete, with proper cleanup
+- Mount one global subscription provider (in `App.tsx` or a small `RealtimeBridge` component) so every page benefits without each component setting up its own channel
 
-**New `/account` page (member area)**
-- Shows the logged-in user's email, join date, and role badge (Member / Admin).
-- Lists their own RSVPs and membership application status (read-only).
-- "Sign out" button.
-- If the user is an admin, shows a prominent "Open Admin Dashboard" link.
+### 2. Wire the public homepage to live CMS data
 
-**Navbar updates**
-- When logged out: show "Sign in" link.
-- When logged in: show user avatar/initial dropdown → Account, Admin (if admin), Sign out.
-- Uses `supabase.auth.onAuthStateChange` so it updates instantly.
+`src/pages/Home.tsx` currently uses hardcoded strings, images, and a hardcoded `priorities` array. Replace with `useSetting()` reads (with sensible fallbacks so nothing breaks if a setting is missing):
 
----
+- Hero section → reads `hero` setting (eyebrow, title, subtitle, tagline words, image, primary/secondary CTAs)
+- Action bar under hero → uses hero CTA settings
+- "Our Community Promise" block → reads `promise` setting (3 headline words, two taglines, image)
+- Priorities accordion → reads `priorities` setting array
+- CTA strip → reads `cta_strip` setting (heading + buttons)
 
-## 2. Database additions
+### 3. Wire the footer to live CMS data
 
-Two small migrations:
+`src/components/layout/Footer.tsx` currently hardcodes columns, contact info, and socials. Update to read:
 
-**a. `profiles` table** (so we can show display name, avatar, etc. — currently the app has no profile data)
-```
-profiles (
-  id uuid PK references auth.users on delete cascade,
-  display_name text,
-  avatar_url text,
-  bio text,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-)
-```
-- RLS: anyone can SELECT (public profile), only owner can UPDATE, INSERT via trigger on `auth.users` signup.
-- Trigger `handle_new_user_profile` auto-creates a profile row on signup.
+- `footer` setting → tagline + link columns (already managed by `FooterAdmin`)
+- `contact_info` setting → email, phone, address
+- `social_links` setting → facebook/instagram/youtube/whatsapp URLs (hide icons whose URL is empty)
 
-**b. `site_settings` table** (key/value store so admins can edit homepage hero text, footer info, contact details, social links, donation links, "promise" priorities, etc. without code changes)
-```
-site_settings (
-  key text PK,
-  value jsonb not null,
-  updated_at timestamptz default now()
-)
-```
-- RLS: public SELECT, admin-only INSERT/UPDATE/DELETE via `has_role`.
-- Seeded keys: `hero`, `promise`, `priorities`, `cta_strip`, `contact_info`, `social_links`, `donate_info`, `footer`.
+### 4. Wire the Contact and Donate pages
 
-No changes to existing tables (events, news_posts, announcements, gallery_albums, gallery_photos, membership_applications, contact_messages, event_rsvps, user_roles) — they already cover everything else and have correct RLS.
+- `src/pages/Contact.tsx` → read `contact_info` for the displayed details
+- `src/pages/Donate.tsx` → read `donate_info` (intro, mpesa, paypal, bank)
 
----
+### 5. Subscribe content hooks to realtime
 
-## 3. Admin Dashboard — full rebuild
+Update `src/hooks/useContent.ts` and `src/hooks/useSiteSettings.ts` so each consumer also gets realtime invalidation:
 
-Replace the single `src/pages/Admin.tsx` file with a **layout + route-based dashboard** at `/admin/*` using a sidebar (shadcn `Sidebar`).
+- `useEvents`, `useNews`, `useAnnouncements`, `useAlbums` → subscribe to their respective tables
+- `useSetting(key)` → subscribe to `site_settings` filtered by that key
 
-**Layout: `src/pages/admin/AdminLayout.tsx`**
-- Left sidebar with grouped nav, top header showing admin email + "View site" + Sign out.
-- Sidebar collapsible to icon mode.
+### 6. Fallback safety
 
-**Sidebar groups (mapped to every public section):**
+Every `useSetting` call gets a hardcoded fallback object matching today's homepage/footer copy, so:
+- The page never renders blank while data is loading
+- If an admin clears a field, the site shows the fallback rather than breaking layout
 
-| Group | Items | Public page it controls |
-|---|---|---|
-| Dashboard | Overview | `/` (stats: counts, recent submissions) |
-| Content | Homepage, Site Settings, Footer | `/`, global |
-| Community | Events, RSVPs, News, Announcements, Gallery | `/events`, `/news`, `/gallery` |
-| People | Membership Applications, Contact Messages, Users & Roles | `/membership`, `/contact` |
-| Account | My Profile, Sign out | — |
+## Technical details
 
-**Pages built (all support full CRUD — list / create / edit / delete, with edit dialogs, not just an "add" form):**
+- **Realtime enable (SQL migration):** `ALTER PUBLICATION supabase_realtime ADD TABLE public.<table>` for each of the 7 tables, plus `ALTER TABLE ... REPLICA IDENTITY FULL` so update payloads include the row data needed for filtering
+- **Hook shape:**
+  ```ts
+  useRealtimeInvalidate('site_settings', ['site_settings'])
+  // listens to postgres_changes event '*', calls queryClient.invalidateQueries
+  // cleans up channel in useEffect return
+  ```
+- **No new tables** — all existing `site_settings` keys (`hero`, `promise`, `priorities`, `cta_strip`, `footer`, `contact_info`, `social_links`, `donate_info`) are already populated by the seed migration and editable in admin
+- **No RLS changes** — public read policies already exist on every table involved
+- **Channel naming:** unique per table (e.g. `realtime:site_settings`) to avoid collisions
 
-1. **Overview** (`/admin`) — counts of events, news, RSVPs, pending applications, unread contact messages; recent activity feed.
-2. **Homepage CMS** (`/admin/homepage`) — edits the `site_settings.hero`, `promise`, `priorities` (4 cards), `cta_strip` JSON. Form mirrors what's rendered on Home.tsx; `Home.tsx` is refactored to read from `site_settings` with sensible fallbacks.
-3. **Site Settings** (`/admin/settings`) — contact info, social links, donate info (used by Donate page + Footer + Contact page).
-4. **Footer** (`/admin/footer`) — footer copy & link columns.
-5. **Events** (`/admin/events`) — list with filter (upcoming/past), create + **edit dialog** + delete + image upload (uses existing `community-images` bucket).
-6. **RSVPs** (`/admin/rsvps`) — grouped by event, export to CSV button.
-7. **News** (`/admin/news`) — list, create, **edit (with Markdown-style textarea)**, delete, toggle featured, image upload.
-8. **Announcements** (`/admin/announcements`) — list, create, edit, toggle active, delete.
-9. **Gallery** (`/admin/gallery`) — manage albums (create/edit/delete), open album → manage photos (upload multiple to `community-images`, caption edit, delete).
-10. **Membership Applications** (`/admin/memberships`) — list, change status (pending/approved/rejected), delete, view full message.
-11. **Contact Messages** (`/admin/contacts`) — list, mark read (client-side state), delete, reply via mailto.
-12. **Users & Roles** (`/admin/users`) — list all profiles + roles, promote/demote member↔admin (admin guard prevents removing the last admin).
-13. **My Profile** (`/admin/profile`) — edit display_name, avatar, bio.
+## Out of scope
 
-**Reusable building blocks (new):**
-- `src/components/admin/DataTable.tsx` — simple table with row actions.
-- `src/components/admin/ImageUpload.tsx` — uploads to `community-images` bucket, returns public URL.
-- `src/components/admin/EditDialog.tsx` — generic edit-in-modal wrapper.
-- `src/hooks/useAuth.ts` — exposes `{ user, isAdmin, loading }` based on `onAuthStateChange` + `user_roles` query.
-- `src/hooks/useSiteSettings.ts` — `useSetting(key)` + `useUpdateSetting(key)`.
-
-**Route guards:**
-- `<RequireAuth>` redirects to `/auth` if no session.
-- `<RequireAdmin>` redirects non-admins to `/account`.
-
----
-
-## 4. Public pages — minor updates to consume CMS data
-
-- **Home.tsx**: hero copy, promise block, priorities accordion, CTA strip read from `site_settings` (fallback to current hard-coded text so nothing breaks before admin edits anything).
-- **Footer.tsx / Contact.tsx / Donate.tsx**: read `contact_info`, `social_links`, `donate_info` from settings.
-- **Membership.tsx / Contact.tsx**: when a logged-in user submits, prefill name/email from their profile.
-
----
-
-## 5. Security checklist
-
-- All new RLS policies use the existing `has_role(auth.uid(), 'admin')` security-definer function (no recursion risk).
-- `profiles` insert handled by trigger only; updates restricted to `auth.uid() = id`.
-- `site_settings` writes admin-only.
-- Image uploads go to existing public `community-images` bucket; storage policies limited to authenticated admins for write.
-- Last-admin protection on Users & Roles (server-side check in a small DB function `prevent_last_admin_removal`).
-
----
-
-## Out of scope (ask if you want these)
-- Rich text WYSIWYG editor (using plain textarea + line breaks for now).
-- Email notifications when new applications/contact messages arrive.
-- Audit log of admin edits.
-- Per-section reordering with drag-and-drop.
-
-After approval I'll implement migrations first, then the admin layout and pages, then wire the public pages to the new settings.
+- Realtime on RSVPs / contact messages / membership applications (admin-only screens, refresh-on-load is fine)
+- Editing the priorities accordion icons (text/body only, as today)
+- A "preview as draft before publish" workflow — every save goes live immediately
