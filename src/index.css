@@ -41,7 +41,7 @@
     --input: 39 22% 84%;
     --ring: 41 65% 52%;
 
-    --radius: 0.75rem;
+    --radius: 0rem;
 
     --gradient-hero: linear-gradient(135deg, hsl(217 55% 18%) 0%, hsl(217 50% 28%) 100%);
     --gradient-gold: linear-gradient(135deg, hsl(41 70% 58%) 0%, hsl(38 65% 48%) 100%);
