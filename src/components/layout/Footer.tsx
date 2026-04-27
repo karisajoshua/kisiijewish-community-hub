@@ -7,8 +7,8 @@ export const Footer = () => {
     <footer className="bg-primary text-primary-foreground mt-20">
       <div className="container mx-auto px-4 py-14 grid gap-10 md:grid-cols-4">
         <div>
-          <div className="bg-background p-4 inline-block mb-4">
-            <Logo variant="footer" />
+          <div className="mb-4 inline-block bg-primary-foreground/10 p-4 ring-1 ring-primary-foreground/15 backdrop-blur-sm">
+            <Logo variant="footer" className="brightness-0 invert" />
           </div>
           <p className="text-sm text-primary-foreground/75 leading-relaxed">
             A warm, welcoming home for every member of our community — built on tradition, learning, and care for one another.
