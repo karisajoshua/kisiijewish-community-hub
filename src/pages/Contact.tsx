@@ -49,41 +49,47 @@ const Contact = () => {
           <div className="lg:col-span-2 space-y-4">
             <Card className="p-6 border-border bg-card">
               <div className="flex items-start gap-4">
-                <div className="h-11 w-11 rounded-xl gradient-gold flex items-center justify-center shrink-0 shadow-gold">
+                <div className="h-11 w-11 rounded-xl bg-sky-soft flex items-center justify-center shrink-0">
                   <MapPin className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <h3 className="font-display font-bold text-primary">Visit us</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Kisii Town<br />Kisii County, Kenya</p>
+                  <p className="text-sm text-muted-foreground mt-1 whitespace-pre-line">{c.address || "Kisii Town, Kenya"}</p>
+                  {c.hours && <p className="text-xs text-muted-foreground mt-1">{c.hours}</p>}
                 </div>
               </div>
             </Card>
             <Card className="p-6 border-border bg-card">
               <div className="flex items-start gap-4">
-                <div className="h-11 w-11 rounded-xl gradient-gold flex items-center justify-center shrink-0 shadow-gold">
+                <div className="h-11 w-11 rounded-xl bg-sky-soft flex items-center justify-center shrink-0">
                   <Mail className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <h3 className="font-display font-bold text-primary">Email</h3>
-                  <p className="text-sm text-muted-foreground mt-1">hello@kisiijewish.org</p>
+                  <a href={`mailto:${c.email}`} className="text-sm text-muted-foreground mt-1 hover:text-primary">{c.email}</a>
                 </div>
               </div>
             </Card>
             <Card className="p-6 border-border bg-card">
               <div className="flex items-start gap-4">
-                <div className="h-11 w-11 rounded-xl gradient-gold flex items-center justify-center shrink-0 shadow-gold">
+                <div className="h-11 w-11 rounded-xl bg-sky-soft flex items-center justify-center shrink-0">
                   <Phone className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <h3 className="font-display font-bold text-primary">Phone</h3>
-                  <p className="text-sm text-muted-foreground mt-1">+254 700 000 000</p>
+                  <a href={`tel:${c.phone}`} className="text-sm text-muted-foreground mt-1 hover:text-primary">{c.phone}</a>
                 </div>
               </div>
             </Card>
             <div className="flex gap-3 pt-2">
-              <a href="#" className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-smooth"><Facebook className="h-4 w-4" /></a>
-              <a href="#" className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-smooth"><Instagram className="h-4 w-4" /></a>
-              <a href="#" className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-smooth"><Youtube className="h-4 w-4" /></a>
+              {[
+                { key: "facebook", Icon: Facebook },
+                { key: "instagram", Icon: Instagram },
+                { key: "youtube", Icon: Youtube },
+                { key: "whatsapp", Icon: MessageCircle },
+              ].map(({ key, Icon }) => s[key] ? (
+                <a key={key} href={s[key]} target="_blank" rel="noreferrer" className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-sky hover:text-sky-foreground transition-smooth"><Icon className="h-4 w-4" /></a>
+              ) : null)}
             </div>
           </div>
 
