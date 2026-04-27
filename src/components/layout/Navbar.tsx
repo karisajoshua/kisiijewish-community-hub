@@ -321,6 +321,16 @@ export const Navbar = () => {
             >
               <Link to="/membership">Join Us</Link>
             </Button>
+
+            {user ? (
+              <div className="mt-2 flex flex-col gap-1">
+                <Button asChild variant="outline" className="w-full"><Link to="/account"><UserIcon className="h-4 w-4 mr-1" /> My Account</Link></Button>
+                {isAdmin && <Button asChild variant="outline" className="w-full"><Link to="/admin"><Shield className="h-4 w-4 mr-1" /> Admin</Link></Button>}
+                <Button variant="ghost" className="w-full" onClick={signOut}><LogOut className="h-4 w-4 mr-1" /> Sign out</Button>
+              </div>
+            ) : (
+              <Button asChild variant="outline" className="mt-2 w-full"><Link to="/auth"><LogIn className="h-4 w-4 mr-1" /> Sign in</Link></Button>
+            )}
           </nav>
         </div>
       )}
