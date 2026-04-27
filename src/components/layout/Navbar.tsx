@@ -227,6 +227,26 @@ export const Navbar = () => {
         </div>
 
         <div className="hidden lg:flex items-center gap-2 shrink-0">
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <div className="h-7 w-7 rounded-full bg-sky text-sky-foreground flex items-center justify-center text-xs font-bold">
+                    {(user.email ?? "?")[0].toUpperCase()}
+                  </div>
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem asChild><Link to="/account"><UserIcon className="h-4 w-4 mr-2" /> My Account</Link></DropdownMenuItem>
+                {isAdmin && <DropdownMenuItem asChild><Link to="/admin"><Shield className="h-4 w-4 mr-2" /> Admin Dashboard</Link></DropdownMenuItem>}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={signOut}><LogOut className="h-4 w-4 mr-2" /> Sign out</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button asChild variant="ghost" size="sm"><Link to="/auth"><LogIn className="h-4 w-4 mr-1" /> Sign in</Link></Button>
+          )}
           <Button
             asChild
             size="sm"
