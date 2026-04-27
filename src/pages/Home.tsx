@@ -100,11 +100,8 @@ const Home = () => {
       <section className="relative">
         <div className="relative h-[60vh] min-h-[420px] max-h-[640px] overflow-hidden">
           <img
-            src={
-              featuredEvent?.image_url ||
-              "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1800"
-            }
-            alt={featuredEvent?.title || "Community gathering"}
+            src={hero.image_url || featuredEvent?.image_url || "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1800"}
+            alt={hero.title || featuredEvent?.title || "Community gathering"}
             className="absolute inset-0 h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-primary/40 via-transparent to-transparent" />
@@ -113,21 +110,20 @@ const Home = () => {
           <div className="absolute inset-0 flex items-center justify-center px-4">
             <div className="bg-sky/95 text-sky-foreground rounded-md shadow-soft px-8 py-7 md:px-12 md:py-10 max-w-2xl text-center fade-in-up">
               <div className="font-display font-extrabold leading-[0.95] tracking-tight">
-                <span className="block text-2xl md:text-3xl">KISIIJEWISH</span>
-                <span className="block text-5xl md:text-7xl mt-1">
-                  COMMUNITY
-                </span>
-                <span className="block text-base md:text-lg font-semibold tracking-[0.3em] mt-3">
-                  TOGETHER · 2026
-                </span>
+                {hero.eyebrow && <span className="block text-2xl md:text-3xl">{hero.eyebrow}</span>}
+                {hero.title && <span className="block text-5xl md:text-7xl mt-1">{hero.title}</span>}
+                {hero.subtitle && <span className="block text-base md:text-lg font-semibold tracking-[0.3em] mt-3">{hero.subtitle}</span>}
               </div>
-              <div className="mt-5 flex items-center justify-center gap-4 text-xs md:text-sm font-semibold uppercase tracking-wider text-sky-foreground/90">
-                <span>Faith</span>
-                <span className="h-1 w-1 rounded-full bg-sky-foreground/70" />
-                <span>Family</span>
-                <span className="h-1 w-1 rounded-full bg-sky-foreground/70" />
-                <span>Tradition</span>
-              </div>
+              {(hero.tagline ?? []).length > 0 && (
+                <div className="mt-5 flex items-center justify-center gap-4 text-xs md:text-sm font-semibold uppercase tracking-wider text-sky-foreground/90">
+                  {(hero.tagline ?? []).map((w: string, i: number) => (
+                    <span key={i} className="flex items-center gap-4">
+                      {i > 0 && <span className="h-1 w-1 rounded-full bg-sky-foreground/70" />}
+                      <span>{w}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -136,23 +132,19 @@ const Home = () => {
         <div className="bg-primary text-primary-foreground">
           <div className="container mx-auto px-4 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="text-sm md:text-base font-semibold uppercase tracking-wider">
-              {featuredEvent
-                ? featuredEvent.title
-                : "2026 Community Gathering"}
+              {hero.cta_label || featuredEvent?.title || "2026 Community Gathering"}
             </div>
             <div className="flex flex-wrap gap-3">
-              <Button
-                asChild
-                className="bg-background text-primary hover:bg-background/90 font-semibold uppercase tracking-wider"
-              >
-                <Link to="/events">Register</Link>
-              </Button>
-              <Button
-                asChild
-                className="bg-background text-primary hover:bg-background/90 font-semibold uppercase tracking-wider"
-              >
-                <Link to="/membership">Join Us</Link>
-              </Button>
+              {hero.primary_cta?.label && (
+                <Button asChild className="bg-background text-primary hover:bg-background/90 font-semibold uppercase tracking-wider">
+                  <Link to={hero.primary_cta?.href || "/events"}>{hero.primary_cta.label}</Link>
+                </Button>
+              )}
+              {hero.secondary_cta?.label && (
+                <Button asChild className="bg-background text-primary hover:bg-background/90 font-semibold uppercase tracking-wider">
+                  <Link to={hero.secondary_cta?.href || "/membership"}>{hero.secondary_cta.label}</Link>
+                </Button>
+              )}
             </div>
           </div>
         </div>
