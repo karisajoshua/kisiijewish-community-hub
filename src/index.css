@@ -26,13 +26,14 @@
     --muted: 39 25% 92%;
     --muted-foreground: 217 15% 38%;
 
-    --accent: 41 65% 52%;              /* warm gold */
-    --accent-foreground: 217 55% 14%;
-    --accent-soft: 41 70% 88%;
-
     --sky: 199 89% 56%;                /* bright community blue */
     --sky-foreground: 0 0% 100%;
     --sky-soft: 199 95% 92%;
+
+    /* Accent now mirrors the community blue (gold removed) */
+    --accent: 199 89% 48%;
+    --accent-foreground: 0 0% 100%;
+    --accent-soft: 199 95% 92%;
 
     --destructive: 0 70% 45%;
     --destructive-foreground: 0 0% 100%;
@@ -44,11 +45,11 @@
     --radius: 0rem;
 
     --gradient-hero: linear-gradient(135deg, hsl(217 55% 18%) 0%, hsl(217 50% 28%) 100%);
-    --gradient-gold: linear-gradient(135deg, hsl(41 70% 58%) 0%, hsl(38 65% 48%) 100%);
+    --gradient-gold: linear-gradient(135deg, hsl(199 89% 56%) 0%, hsl(210 80% 42%) 100%);
     --gradient-warm: linear-gradient(180deg, hsl(39 38% 96%) 0%, hsl(39 35% 92%) 100%);
     --shadow-soft: 0 6px 24px -8px hsl(217 45% 14% / 0.12);
     --shadow-card: 0 2px 12px -4px hsl(217 45% 14% / 0.08);
-    --shadow-gold: 0 8px 28px -10px hsl(41 65% 52% / 0.45);
+    --shadow-gold: 0 8px 28px -10px hsl(199 89% 48% / 0.4);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     --sidebar-background: 0 0% 98%;

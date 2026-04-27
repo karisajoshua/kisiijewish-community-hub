@@ -1,16 +1,14 @@
 import { Link } from "react-router-dom";
-import { Mail, Phone, MapPin, Facebook, Instagram, Youtube, Star } from "lucide-react";
+import { Mail, Phone, MapPin, Facebook, Instagram, Youtube } from "lucide-react";
+import { Logo } from "@/components/Logo";
 
 export const Footer = () => {
   return (
     <footer className="bg-primary text-primary-foreground mt-20">
       <div className="container mx-auto px-4 py-14 grid gap-10 md:grid-cols-4">
         <div>
-          <div className="flex items-center gap-2 mb-4">
-            <div className="h-9 w-9 rounded-full gradient-gold flex items-center justify-center">
-              <Star className="h-4 w-4 text-primary" strokeWidth={2.5} />
-            </div>
-            <div className="font-display font-bold text-lg">Kisiijewish</div>
+          <div className="bg-background p-4 inline-block mb-4">
+            <Logo variant="footer" />
           </div>
           <p className="text-sm text-primary-foreground/75 leading-relaxed">
             A warm, welcoming home for every member of our community — built on tradition, learning, and care for one another.

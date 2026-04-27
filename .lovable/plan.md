@@ -1,92 +1,58 @@
+## Goal
 
-# Kisiijewish Community Website — Build Plan
+Three coordinated changes:
+1. Use the uploaded "Kisii Jewish Community" logo image in the navbar and footer (replacing the gold star + text mark).
+2. Remove the gold accent color throughout the site — replace it with the existing community blue (`sky` / `primary`) so the palette becomes blue + navy + neutrals.
+3. Convert the top navigation into a mega-menu where every primary item opens a rich dropdown panel with sub-links and a short description.
 
-A warm, modern, mobile-friendly community site inspired by jewishtoronto.com's structure, with a real backend so events, news, gallery, RSVPs, and membership applications are all live and manageable.
+## What the user will see
 
-## Design System
+**Navbar**
+- The uploaded logo (image) replaces the gold star + text on the left of every page. Footer also uses the same logo.
+- Hovering or focusing a top-level item (About, Events, Programs, News, Gallery, Membership, Donate, Contact) opens a wide mega-menu panel below the bar with grouped sub-links + a short blurb. Home stays a simple link. On mobile the dropdowns become collapsible accordions inside the existing slide-out menu.
+- The "Join Us" CTA button changes from gold to community blue.
 
-- **Palette**: Navy (primary), gold (accent), soft beige (background), white (surface). All defined as HSL tokens in `index.css` and Tailwind.
-- **Typography**: Serif display headings (Playfair Display) + clean sans body (Inter) for a warm, dignified feel.
-- **Components**: Rounded cards, soft shadows, subtle gold dividers, smooth fade/slide animations on scroll, sticky translucent nav with blur.
-- **Imagery**: Tasteful warm community placeholder photos (Unsplash-style) ready to swap.
-- **Accessibility**: WCAG-AA contrast, keyboard navigation, semantic HTML, focus rings.
+**Color palette**
+- All gold/amber accents (badges, icon chips, dividers, hover states, "Send a card" button, hero accent line, footer headings, link hovers, timeline dots, value icon tiles, program icon tiles, etc.) become blue (`sky` / `primary`).
+- The gold gradient utilities (`gradient-gold`, `shadow-gold`) are remapped to a blue equivalent so existing class usages keep working without touching every file.
 
-## Site Structure (9 pages + admin)
+## Mega-menu content map
 
 ```text
-/                  Home
-/about             About Us
-/events            Events (upcoming + past gallery)
-/programs          Programs
-/news              News & Announcements (search + categories)
-/news/:slug        News post detail
-/gallery           Gallery (albums + lightbox)
-/membership        Membership info + form
-/donate            Donations info + areas of impact
-/contact           Contact form + map placeholder + socials
-/auth              Login / Sign up (admin access)
-/admin             Admin dashboard (events, news, gallery, submissions)
+About        → Our Story · Mission & Vision · Leadership · History · Values
+Events       → Upcoming Events · Past Events · Holidays & Shabbat · Register / RSVP
+Programs     → Education · Youth · Cultural · Community Support · Volunteer
+News         → Latest News · Announcements · Newsletter
+Gallery      → Photo Albums · Videos · Submit Photos
+Membership   → Become a Member · Member Benefits · Renew · Member Directory
+Donate       → Ways to Give · Donation Instructions · Sponsor a Program · FAQ
+Contact      → Get in Touch · Visit Us · Leadership Contacts · Prayer Requests
 ```
+Each panel: 2-column grid of sub-links with a one-line description per link, plus a small promo block on the right (e.g. featured event/news thumbnail or CTA to the section's main page).
 
-Sticky nav on every page; consistent footer with quick links, contact, and social icons.
+## Technical changes
 
-## Page Details
+1. **Logo asset**
+   - Copy `user-uploads://kisii_-_Edited.png` to `src/assets/logo-kisii-jewish.png`.
+   - New `src/components/Logo.tsx` that imports the asset and renders it at appropriate sizes (variant prop for navbar vs footer; navbar uses dark version on light bg, footer wraps it on the navy bg — we'll display as-is since it's blue-on-transparent which works on both).
 
-**Home**: Hero with name + welcome + 3 CTAs (Join Us / View Events / Contact). Featured announcements strip. Upcoming events (3 cards from DB). About preview. Programs preview grid. Gallery preview. Join/donate CTA band. Footer.
+2. **Color de-gold**
+   - `src/index.css`: change `--accent` to match `--sky` (or `--primary`), repoint `--accent-soft` to `--sky-soft`, replace the `--gradient-gold` definition with a blue gradient, and `--shadow-gold` with a blue-tinted shadow. This auto-updates ~all `text-accent`, `bg-accent`, `gradient-gold`, `shadow-gold` usages without per-file edits.
+   - Quick sweep for any hardcoded gold/amber Tailwind classes in pages (none expected — usage is via tokens).
 
-**About**: Mission & vision, history timeline, leadership cards (photo/name/role), values grid.
+3. **Mega-menu Navbar (`src/components/layout/Navbar.tsx`)**
+   - Replace the current flat link list with shadcn `NavigationMenu` (`@/components/ui/navigation-menu`, already in project).
+   - Define a `megaMenu` config array (label → groups of {to, title, desc}, plus optional feature card).
+   - Each `NavigationMenuTrigger` opens a `NavigationMenuContent` panel (~600–720px wide) styled with sharp edges (matches global radius=0), navy text on white, blue hover states.
+   - Mobile: keep existing slide-out, but render each top item as an `Accordion` with its sub-links inside.
+   - Replace the gold "Join Us" button with `bg-sky` / `bg-primary`.
 
-**Events**: Filterable upcoming list with date/time/location/description and RSVP button (modal form). Past events photo gallery section.
+4. **Footer (`src/components/layout/Footer.tsx`)**
+   - Replace the gold star + text block with the `<Logo variant="footer" />`.
+   - Footer headings change from `text-accent` to `text-sky` (will happen automatically via token remap, no edit needed).
 
-**Programs**: 5 category sections (Education, Youth, Cultural, Community Support, Volunteer) with descriptive cards and "Get involved" links.
+## Out of scope
 
-**News**: Featured post hero, search bar, category filter chips, paginated post grid, individual post pages.
-
-**Gallery**: Album grid → click to open album with lightbox/preview.
-
-**Membership**: Benefits grid + application form (name, email, phone, location, message).
-
-**Donate**: Impact areas (cards), suggested amounts displayed, bank/contact instructions block, "Contact treasurer" CTA. No payment processing.
-
-**Contact**: Form (name, email, subject, message), email/phone/address block, embedded map placeholder (static iframe), social icons.
-
-## Backend (Lovable Cloud)
-
-Tables with Row-Level Security:
-- `events` — title, description, date, time, location, image, is_past
-- `event_rsvps` — event_id, name, email, phone, guests, notes
-- `news_posts` — title, slug, excerpt, content, category, image, featured, published_at
-- `gallery_albums` — title, description, cover_image, event_date
-- `gallery_photos` — album_id, image_url, caption
-- `membership_applications` — name, email, phone, location, message, status
-- `contact_messages` — name, email, subject, message
-- `announcements` — message, link, active
-- `user_roles` (separate table) — user_id, role enum (`admin`, `member`) + `has_role()` security-definer function
-
-**Public access**: read events/news/gallery/announcements; insert into RSVP, membership, and contact tables.
-**Admin only**: full CRUD on all content tables; view submissions.
-
-## Auth & Admin
-
-- Email/password + Google sign-in via Lovable Cloud.
-- `/auth` page (login + signup, auto-confirm enabled for fast testing).
-- `/admin` protected route — checks `has_role(uid, 'admin')`.
-- Admin dashboard tabs: **Events** (create/edit/delete, mark past), **News** (rich text), **Gallery** (albums + photo upload to Storage), **Submissions** (RSVPs, membership apps, contact messages).
-- First user can be promoted to admin via a one-time SQL helper noted in the README.
-
-## Forms & Validation
-
-All forms use `react-hook-form` + `zod` schemas with length limits, email validation, and trimmed strings. Toast feedback on success/error. Server-side RLS enforces who can write what.
-
-## Technical Notes
-
-- React Router for all routes; lazy-load admin bundle.
-- TanStack Query for data fetching/caching with optimistic updates in admin.
-- Tailwind tokens only — no hardcoded colors in components.
-- Image storage via Lovable Cloud Storage bucket `gallery` (public read).
-- Smooth scroll animations via Tailwind transitions + IntersectionObserver hook.
-- Fully responsive: mobile hamburger menu, tablet 2-col grids, desktop 3-4 col.
-
-## What you'll get to swap later
-
-Placeholder text for mission, history, leadership names/photos, program descriptions, and gallery images — all easy to edit through the admin panel or directly in seed data.
+- No changes to page content, hero copy, or routes themselves.
+- Not creating new pages for sub-links that don't exist yet — sub-links route to the closest existing page (e.g. "Member Benefits" → `/membership`, "Sponsor a Program" → `/donate`). This can be expanded later.
+- Not touching the global `border-radius: 0` rule.
