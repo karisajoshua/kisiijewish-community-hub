@@ -26,7 +26,9 @@ const Contact = () => {
 
   const onSubmit = async (data: FormData) => {
     setSubmitting(true);
-    const { error } = await supabase.from("contact_messages").insert(data);
+    const { error } = await supabase.from("contact_messages").insert({
+      name: data.name, email: data.email, subject: data.subject, message: data.message,
+    });
     setSubmitting(false);
     if (error) return toast.error("Could not send. Please try again.");
     toast.success("Message sent! We'll respond shortly.");
