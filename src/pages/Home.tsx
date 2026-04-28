@@ -48,10 +48,30 @@ const promiseFallback = {
 };
 
 const prioritiesFallback = [
-  { label: "Heritage", body: "Preserving the traditions, language, and stories that shape who we are — for our children and the generations to come." },
-  { label: "Education", body: "Hebrew classes, Torah study, and lifelong learning circles open to every member of the community." },
-  { label: "Community Support", body: "Caring for elders, families in need, and welcoming newcomers with warmth and practical help." },
-  { label: "Youth & Identity", body: "Investing in the next generation through mentorship, leadership retreats, and proud Jewish identity." },
+  {
+    label: "Heritage",
+    body: "Preserving the traditions, language, and stories that shape who we are — for our children and the generations to come.",
+    description: "From Shabbat candles to the songs we sing on holy days, our heritage is the thread that ties our generations together. We honour those who came before us by keeping their traditions alive — and by passing them on with pride.",
+    image: "https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7?w=800",
+  },
+  {
+    label: "Education",
+    body: "Hebrew classes, Torah study, and lifelong learning circles open to every member of the community.",
+    description: "Learning is a lifelong gift. We host Hebrew classes for all levels, weekly Torah study, guest scholars, and informal learning circles where every question is welcome and every voice matters.",
+    image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800",
+  },
+  {
+    label: "Community Support",
+    body: "Caring for elders, families in need, and welcoming newcomers with warmth and practical help.",
+    description: "When one of us struggles, we all show up. From meals for new parents and the bereaved, to rides for elders and welcome packs for newcomers, our care network is built on the simple promise that no one walks alone.",
+    image: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800",
+  },
+  {
+    label: "Youth & Identity",
+    body: "Investing in the next generation through mentorship, leadership retreats, and proud Jewish identity.",
+    description: "Our young people are not the future — they are the present. Through mentorship, leadership retreats, youth-led services, and proud cultural celebration, we help them grow into confident Jewish adults.",
+    image: "https://images.unsplash.com/photo-1529390079861-591de354faf5?w=800",
+  },
 ];
 
 const ctaStripFallback = {
