@@ -141,7 +141,7 @@ const Donate = () => {
 const DonationForm = ({
   donationType, amounts, settings,
 }: { donationType: "one_time" | "monthly"; amounts: number[]; settings: any }) => {
-  const [amount, setAmount] = useState<number | "">(amounts[1] ?? amounts[0]);
+  const [amount, setAmount] = useState<number | "other">(amounts[1] ?? amounts[0]);
   const [otherAmount, setOtherAmount] = useState<string>("");
   const [donorType, setDonorType] = useState<"personal" | "company">("personal");
   const [companyName, setCompanyName] = useState("");
@@ -402,7 +402,7 @@ const DonationForm = ({
 /* -------------------- Send a card form -------------------- */
 
 const SendCardForm = ({ amounts, settings }: { amounts: number[]; settings: any }) => {
-  const [amount, setAmount] = useState<number | "">(amounts[1]);
+  const [amount, setAmount] = useState<number | "other">(amounts[1]);
   const [otherAmount, setOtherAmount] = useState("");
   const [senderName, setSenderName] = useState("");
   const [senderEmail, setSenderEmail] = useState("");
