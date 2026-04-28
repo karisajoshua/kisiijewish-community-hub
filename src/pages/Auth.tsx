@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 
-const redirectByRole = async (navigate: (p: string) => void, userId: string) => {
+const redirectAfterAuth = async (navigate: (p: string) => void, userId: string, redirect: string | null) => {
+  if (redirect && redirect.startsWith("/")) {
+    navigate(redirect);
+    return;
+  }
   const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
   const isAdmin = (roles ?? []).some((r: any) => r.role === "admin");
   navigate(isAdmin ? "/admin" : "/account");
@@ -18,19 +22,21 @@ const redirectByRole = async (navigate: (p: string) => void, userId: string) => 
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const redirect = params.get("redirect");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) redirectByRole(navigate, data.session.user.id);
+      if (data.session) redirectAfterAuth(navigate, data.session.user.id, redirect);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) setTimeout(() => redirectByRole(navigate, session.user.id), 0);
+      if (session) setTimeout(() => redirectAfterAuth(navigate, session.user.id, redirect), 0);
     });
     return () => sub.subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, redirect]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,9 +50,10 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    const dest = redirect && redirect.startsWith("/") ? redirect : "/account";
     const { error } = await supabase.auth.signUp({
       email, password,
-      options: { emailRedirectTo: window.location.origin + "/account" },
+      options: { emailRedirectTo: window.location.origin + dest },
     });
     setLoading(false);
     if (error) toast.error(error.message);
@@ -54,7 +61,8 @@ const Auth = () => {
   };
 
   const handleGoogle = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/account" });
+    const dest = redirect && redirect.startsWith("/") ? redirect : "/account";
+    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + dest });
     if (result.error) toast.error("Google sign-in failed");
   };
 
