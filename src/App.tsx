@@ -20,6 +20,8 @@ const Donate = lazy(() => import("./pages/Donate"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Auth = lazy(() => import("./pages/Auth"));
 const Account = lazy(() => import("./pages/Account"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout").then(m => ({ default: m.AdminLayout })));
@@ -63,6 +65,8 @@ const App = () => (
             <Route path="/membership" element={withLayout(<Membership />)} />
             <Route path="/donate" element={withLayout(<Donate />)} />
             <Route path="/contact" element={withLayout(<Contact />)} />
+            <Route path="/privacy" element={withLayout(<Privacy />)} />
+            <Route path="/terms" element={withLayout(<Terms />)} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/account" element={<RequireAuth>{withLayout(<Account />)}</RequireAuth>} />
             <Route path="/admin" element={<RequireAdmin><AdminLayout /></RequireAdmin>}>

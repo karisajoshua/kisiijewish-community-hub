@@ -99,9 +99,15 @@ export const Footer = () => {
       </div>
 
       <div className="border-t border-primary-foreground/15">
-        <div className="container mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-primary-foreground/60">
+        <div className="container mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-primary-foreground/60">
           <p>© {new Date().getFullYear()} Kisiijewish Community. All rights reserved.</p>
-          <p>Built with care for our community</p>
+          <nav className="flex items-center gap-4">
+            <Link to="/privacy" className="hover:text-primary-foreground transition-smooth">Privacy Policy</Link>
+            <span aria-hidden className="opacity-40">·</span>
+            <Link to="/terms" className="hover:text-primary-foreground transition-smooth">Terms of Service</Link>
+            <span aria-hidden className="hidden sm:inline opacity-40">·</span>
+            <span className="hidden sm:inline">Built with care for our community</span>
+          </nav>
         </div>
       </div>
     </footer>
