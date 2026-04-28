@@ -39,11 +39,11 @@ const megaMenu: MegaItem[] = [
       "Who we are, where we come from, and what we stand for as a community.",
     image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600",
     links: [
-      { to: "/about", title: "Our Story", desc: "Our journey and purpose" },
-      { to: "/about", title: "Mission & Vision", desc: "What guides us" },
-      { to: "/about", title: "Leadership", desc: "Meet our community leaders" },
-      { to: "/about", title: "History", desc: "Generations of community life" },
-      { to: "/about", title: "Our Values", desc: "What we hold dear" },
+      { to: "/about#story", title: "Our Story", desc: "Our journey and purpose" },
+      { to: "/about#mission", title: "Mission & Vision", desc: "What guides us" },
+      { to: "/about#leadership", title: "Leadership", desc: "Meet our community leaders" },
+      { to: "/about#history", title: "History", desc: "Generations of community life" },
+      { to: "/about#values", title: "Our Values", desc: "What we hold dear" },
     ],
   },
   {
@@ -52,10 +52,10 @@ const megaMenu: MegaItem[] = [
     blurb: "Gather, celebrate, and learn together year-round.",
     image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600",
     links: [
-      { to: "/events", title: "Upcoming Events", desc: "What's coming up" },
-      { to: "/events", title: "Past Events", desc: "Look back at what we've done" },
-      { to: "/events", title: "Holidays & Shabbat", desc: "Mark the calendar" },
-      { to: "/events", title: "Register / RSVP", desc: "Save your spot" },
+      { to: "/events#upcoming", title: "Upcoming Events", desc: "What's coming up" },
+      { to: "/events#past", title: "Past Events", desc: "Look back at what we've done" },
+      { to: "/events#upcoming", title: "Holidays & Shabbat", desc: "Mark the calendar" },
+      { to: "/events#upcoming", title: "Register / RSVP", desc: "Save your spot" },
     ],
   },
   {
@@ -64,11 +64,11 @@ const megaMenu: MegaItem[] = [
     blurb: "Pathways to learn, lead, serve, and belong.",
     image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600",
     links: [
-      { to: "/programs", title: "Education", desc: "Hebrew, Torah, lifelong learning" },
-      { to: "/programs", title: "Youth", desc: "For our next generation" },
-      { to: "/programs", title: "Cultural", desc: "Music, art, celebration" },
-      { to: "/programs", title: "Community Support", desc: "Care & connection" },
-      { to: "/programs", title: "Volunteer", desc: "Give your time and talent" },
+      { to: "/programs#education", title: "Education", desc: "Hebrew, Torah, lifelong learning" },
+      { to: "/programs#youth", title: "Youth", desc: "For our next generation" },
+      { to: "/programs#cultural", title: "Cultural", desc: "Music, art, celebration" },
+      { to: "/programs#support", title: "Community Support", desc: "Care & connection" },
+      { to: "/programs#volunteer", title: "Volunteer", desc: "Give your time and talent" },
     ],
   },
   {
@@ -77,9 +77,9 @@ const megaMenu: MegaItem[] = [
     blurb: "Stories, announcements, and updates from our community.",
     image: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600",
     links: [
-      { to: "/news", title: "Latest News", desc: "Fresh stories and reports" },
-      { to: "/news", title: "Announcements", desc: "What you need to know" },
-      { to: "/news", title: "Newsletter", desc: "Subscribe for updates" },
+      { to: "/news#latest", title: "Latest News", desc: "Fresh stories and reports" },
+      { to: "/news#latest", title: "Announcements", desc: "What you need to know" },
+      { to: "/news#latest", title: "Newsletter", desc: "Subscribe for updates" },
     ],
   },
   {
@@ -88,9 +88,9 @@ const megaMenu: MegaItem[] = [
     blurb: "Moments from our gatherings, captured.",
     image: "https://images.unsplash.com/photo-1519741497674-611481863552?w=600",
     links: [
-      { to: "/gallery", title: "Photo Albums", desc: "Browse by event" },
-      { to: "/gallery", title: "Videos", desc: "Recorded highlights" },
-      { to: "/gallery", title: "Submit Photos", desc: "Share your memories" },
+      { to: "/gallery#albums", title: "Photo Albums", desc: "Browse by event" },
+      { to: "/gallery#albums", title: "Videos", desc: "Recorded highlights" },
+      { to: "/gallery#albums", title: "Submit Photos", desc: "Share your memories" },
     ],
   },
   {
@@ -99,10 +99,10 @@ const megaMenu: MegaItem[] = [
     blurb: "Join a warm, welcoming home for every member of the community.",
     image: "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=600",
     links: [
-      { to: "/membership", title: "Become a Member", desc: "Start your journey" },
-      { to: "/membership", title: "Member Benefits", desc: "What's included" },
-      { to: "/membership", title: "Renew", desc: "Keep your membership active" },
-      { to: "/membership", title: "Member Directory", desc: "Connect with members" },
+      { to: "/membership#apply", title: "Become a Member", desc: "Start your journey" },
+      { to: "/membership#benefits", title: "Member Benefits", desc: "What's included" },
+      { to: "/membership#apply", title: "Renew", desc: "Keep your membership active" },
+      { to: "/membership#benefits", title: "Member Directory", desc: "Connect with members" },
     ],
   },
   {
@@ -111,10 +111,10 @@ const megaMenu: MegaItem[] = [
     blurb: "Help sustain our community and the work we do.",
     image: "https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=600",
     links: [
-      { to: "/donate", title: "Ways to Give", desc: "Choose what works for you" },
-      { to: "/donate", title: "Donation Instructions", desc: "Step-by-step guide" },
-      { to: "/donate", title: "Sponsor a Program", desc: "Back what you love" },
-      { to: "/donate", title: "FAQ", desc: "Common questions answered" },
+      { to: "/donate#one-time", title: "One-Time Gift", desc: "Make a single donation" },
+      { to: "/donate#monthly", title: "Monthly Gift", desc: "Sustain us month after month" },
+      { to: "/donate#card", title: "Send a Card", desc: "Tribute gifts in honour or memory" },
+      { to: "/donate#one-time", title: "Sponsor a Program", desc: "Back what you love" },
     ],
   },
   {
@@ -123,10 +123,10 @@ const megaMenu: MegaItem[] = [
     blurb: "Reach out — we'd love to hear from you.",
     image: "https://images.unsplash.com/photo-1423666639041-f56000c27a9a?w=600",
     links: [
-      { to: "/contact", title: "Get in Touch", desc: "Send us a message" },
-      { to: "/contact", title: "Visit Us", desc: "Find our community space" },
-      { to: "/contact", title: "Leadership Contacts", desc: "Reach our leaders" },
-      { to: "/contact", title: "Prayer Requests", desc: "We pray together" },
+      { to: "/contact#message", title: "Get in Touch", desc: "Send us a message" },
+      { to: "/contact#visit", title: "Visit Us", desc: "Find our community space" },
+      { to: "/contact#message", title: "Leadership Contacts", desc: "Reach our leaders" },
+      { to: "/contact#message", title: "Prayer Requests", desc: "We pray together" },
     ],
   },
 ];

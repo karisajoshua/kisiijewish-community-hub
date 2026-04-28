@@ -56,7 +56,7 @@ const News = () => {
         </section>
       )}
 
-      <section className="py-12">
+      <section id="latest" className="py-12 scroll-mt-28">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row md:items-center gap-4 mb-8">
             <div className="relative flex-1 max-w-md">

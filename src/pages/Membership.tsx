@@ -51,7 +51,7 @@ const Membership = () => {
 
       <section className="py-20">
         <div className="container mx-auto px-4 grid lg:grid-cols-5 gap-10">
-          <div className="lg:col-span-3 space-y-6">
+          <div id="benefits" className="lg:col-span-3 space-y-6 scroll-mt-28">
             <div>
               <div className="text-xs font-semibold uppercase tracking-widest text-accent mb-2">Why join?</div>
               <h2 className="font-display text-3xl font-bold text-primary mb-3">Belong to something larger</h2>
@@ -84,7 +84,7 @@ const Membership = () => {
             </div>
           </div>
 
-          <Card className="lg:col-span-2 p-7 border-border bg-card shadow-soft h-fit">
+          <Card id="apply" className="lg:col-span-2 p-7 border-border bg-card shadow-soft h-fit scroll-mt-28">
             <h3 className="font-display text-2xl font-bold text-primary mb-1">Apply for membership</h3>
             <p className="text-sm text-muted-foreground mb-5">We'll respond within a few days.</p>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

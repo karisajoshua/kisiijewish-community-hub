@@ -14,7 +14,7 @@ const Gallery = () => {
     <>
       <PageHero title="Gallery" subtitle="Moments, memories, and faces from our community life." />
 
-      <section className="py-20">
+      <section id="albums" className="py-20 scroll-mt-28">
         <div className="container mx-auto px-4">
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {albums?.map((a: any) => (

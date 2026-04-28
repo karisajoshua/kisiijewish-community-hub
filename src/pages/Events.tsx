@@ -15,7 +15,7 @@ const Events = () => {
         subtitle="Shabbat dinners, learning circles, holiday celebrations, and community service — there's always something happening."
       />
 
-      <section className="py-20">
+      <section id="upcoming" className="py-20 scroll-mt-28">
         <div className="container mx-auto px-4">
           <SectionHeader eyebrow="Upcoming" title="What's coming up" align="left" />
           {isLoading ? (
@@ -33,7 +33,7 @@ const Events = () => {
       </section>
 
       {past && past.length > 0 && (
-        <section className="py-20 gradient-warm">
+        <section id="past" className="py-20 gradient-warm scroll-mt-28">
           <div className="container mx-auto px-4">
             <SectionHeader eyebrow="Memories" title="Past events" align="left" />
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

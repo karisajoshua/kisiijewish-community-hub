@@ -74,6 +74,87 @@ export type Database = {
         }
         Relationships: []
       }
+      donations: {
+        Row: {
+          account_number: string | null
+          address: string | null
+          amount: number
+          city: string | null
+          company_name: string | null
+          country: string | null
+          created_at: string
+          currency: string
+          donation_type: string
+          donor_email: string
+          donor_name: string
+          donor_phone: string | null
+          donor_type: string
+          frequency: string
+          id: string
+          is_tribute: boolean
+          notes: string | null
+          payment_method: string
+          postal_code: string | null
+          state_region: string | null
+          status: string
+          tribute_message: string | null
+          tribute_name: string | null
+          tribute_recipient_email: string | null
+        }
+        Insert: {
+          account_number?: string | null
+          address?: string | null
+          amount: number
+          city?: string | null
+          company_name?: string | null
+          country?: string | null
+          created_at?: string
+          currency?: string
+          donation_type: string
+          donor_email: string
+          donor_name: string
+          donor_phone?: string | null
+          donor_type?: string
+          frequency?: string
+          id?: string
+          is_tribute?: boolean
+          notes?: string | null
+          payment_method?: string
+          postal_code?: string | null
+          state_region?: string | null
+          status?: string
+          tribute_message?: string | null
+          tribute_name?: string | null
+          tribute_recipient_email?: string | null
+        }
+        Update: {
+          account_number?: string | null
+          address?: string | null
+          amount?: number
+          city?: string | null
+          company_name?: string | null
+          country?: string | null
+          created_at?: string
+          currency?: string
+          donation_type?: string
+          donor_email?: string
+          donor_name?: string
+          donor_phone?: string | null
+          donor_type?: string
+          frequency?: string
+          id?: string
+          is_tribute?: boolean
+          notes?: string | null
+          payment_method?: string
+          postal_code?: string | null
+          state_region?: string | null
+          status?: string
+          tribute_message?: string | null
+          tribute_name?: string | null
+          tribute_recipient_email?: string | null
+        }
+        Relationships: []
+      }
       event_rsvps: {
         Row: {
           created_at: string
