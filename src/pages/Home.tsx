@@ -359,8 +359,20 @@ const Home = () => {
                     {p.label}
                   </span>
                 </AccordionTrigger>
-                <AccordionContent className="text-foreground/85 leading-relaxed pb-6 pl-1">
-                  {p.body}
+                <AccordionContent className="pb-6 pl-1">
+                  <div className="grid md:grid-cols-[1fr_280px] gap-6 items-start pt-2">
+                    <p className="text-foreground/85 leading-relaxed order-2 md:order-1">
+                      {p.description || p.body}
+                    </p>
+                    <div className="order-1 md:order-2 aspect-[4/3] rounded-md overflow-hidden bg-muted shadow-card">
+                      <img
+                        src={p.image || `https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=800`}
+                        alt={p.label}
+                        loading="lazy"
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  </div>
                 </AccordionContent>
               </AccordionItem>
             ))}
