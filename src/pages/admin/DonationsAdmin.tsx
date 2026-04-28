@@ -79,7 +79,7 @@ const DonationsAdmin = () => {
   };
 
   const applyUpdate = async (id: string, update: Record<string, any>, successMsg: string) => {
-    const { error } = await supabase.from("donations").update(update).eq("id", id);
+    const { error } = await supabase.from("donations").update(update as any).eq("id", id);
     if (error) return toast.error("Could not update");
     toast.success(successMsg);
     qc.invalidateQueries({ queryKey: ["donations"] });
