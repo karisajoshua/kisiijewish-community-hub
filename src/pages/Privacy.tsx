@@ -1,24 +1,20 @@
+import { useEffect } from "react";
 import { PageHero } from "@/components/PageHero";
-import { Helmet } from "react-helmet-async";
 
 const LAST_UPDATED = "April 28, 2026";
 
 export default function Privacy() {
+  useEffect(() => {
+    const prev = document.title;
+    document.title = "Privacy Policy | Kisii Jewish Community";
+    return () => { document.title = prev; };
+  }, []);
+
   return (
     <>
-      <Helmet>
-        <title>Privacy Policy | Kisii Jewish Community</title>
-        <meta
-          name="description"
-          content="How the Kisii Jewish Community collects, uses, stores, and protects your personal information."
-        />
-        <link rel="canonical" href="https://kisiijewishcommunity.com/privacy" />
-      </Helmet>
-
       <PageHero
-        eyebrow="Legal"
         title="Privacy Policy"
-        description="Your privacy matters to us. This policy explains how we handle your information."
+        subtitle="Your privacy matters to us. This policy explains how we handle your information."
       />
 
       <article className="container mx-auto px-4 py-14 max-w-3xl prose prose-slate prose-headings:font-display prose-headings:text-primary prose-a:text-accent">

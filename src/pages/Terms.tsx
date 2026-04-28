@@ -1,24 +1,20 @@
+import { useEffect } from "react";
 import { PageHero } from "@/components/PageHero";
-import { Helmet } from "react-helmet-async";
 
 const LAST_UPDATED = "April 28, 2026";
 
 export default function Terms() {
+  useEffect(() => {
+    const prev = document.title;
+    document.title = "Terms of Service | Kisii Jewish Community";
+    return () => { document.title = prev; };
+  }, []);
+
   return (
     <>
-      <Helmet>
-        <title>Terms of Service | Kisii Jewish Community</title>
-        <meta
-          name="description"
-          content="The terms and conditions that govern your use of the Kisii Jewish Community website and services."
-        />
-        <link rel="canonical" href="https://kisiijewishcommunity.com/terms" />
-      </Helmet>
-
       <PageHero
-        eyebrow="Legal"
         title="Terms of Service"
-        description="Please read these terms carefully — they govern your use of our website and community services."
+        subtitle="Please read these terms carefully — they govern your use of our website and community services."
       />
 
       <article className="container mx-auto px-4 py-14 max-w-3xl prose prose-slate prose-headings:font-display prose-headings:text-primary prose-a:text-accent">
