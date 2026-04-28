@@ -46,7 +46,7 @@ const Contact = () => {
 
       <section className="py-20">
         <div className="container mx-auto px-4 grid lg:grid-cols-5 gap-10">
-          <div className="lg:col-span-2 space-y-4">
+          <div id="visit" className="lg:col-span-2 space-y-4 scroll-mt-28">
             <Card className="p-6 border-border bg-card">
               <div className="flex items-start gap-4">
                 <div className="h-11 w-11 rounded-xl bg-sky-soft flex items-center justify-center shrink-0">
@@ -93,7 +93,7 @@ const Contact = () => {
             </div>
           </div>
 
-          <Card className="lg:col-span-3 p-7 border-border bg-card shadow-soft">
+          <Card id="message" className="lg:col-span-3 p-7 border-border bg-card shadow-soft scroll-mt-28">
             <h2 className="font-display text-2xl font-bold text-primary mb-1">Send us a message</h2>
             <p className="text-sm text-muted-foreground mb-6">We typically respond within 1–2 days.</p>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

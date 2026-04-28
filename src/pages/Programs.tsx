@@ -9,30 +9,35 @@ const programs = [
     icon: BookOpen,
     title: "Education Programs",
     color: "from-blue-100 to-blue-50",
+    id: "education",
     desc: "Hebrew language, Torah study, adult learning, and visiting scholar series — designed for every level of interest and experience.",
     items: ["Beginner & intermediate Hebrew", "Weekly Torah study circle", "Parent-and-child learning", "Guest lectures & seminars"],
   },
   {
     icon: Users,
     title: "Youth Programs",
+    id: "youth",
     desc: "Helping our young people build identity, friendship, and leadership through immersive experiences.",
     items: ["Youth groups (ages 6-18)", "Annual leadership retreat", "Mentorship pairings", "Bar/Bat Mitzvah preparation"],
   },
   {
     icon: Sparkles,
     title: "Cultural Activities",
+    id: "cultural",
     desc: "Celebrating Jewish life, art, and tradition throughout the year.",
     items: ["Holiday celebrations", "Music & choir nights", "Film screenings & discussions", "Community art projects"],
   },
   {
     icon: Heart,
     title: "Community Support",
+    id: "support",
     desc: "Care, connection, and practical help for every member of our community.",
     items: ["Visits to elders & those who are unwell", "Meal trains for new parents & those grieving", "Welcome program for newcomers", "Confidential pastoral support"],
   },
   {
     icon: HandHeart,
     title: "Volunteer Opportunities",
+    id: "volunteer",
     desc: "Tikkun olam in action — give your time and talents to projects that make a real difference.",
     items: ["Community garden", "Food drives & soup kitchen", "Tutoring & mentoring", "Event hospitality team"],
   },
@@ -47,8 +52,8 @@ const Programs = () => (
 
     <section className="py-20">
       <div className="container mx-auto px-4 space-y-12">
-        {programs.map(({ icon: Icon, title, desc, items }, i) => (
-          <Card key={title} className="p-8 md:p-10 border-border bg-card shadow-card overflow-hidden">
+        {programs.map(({ icon: Icon, title, desc, items, id }, i) => (
+          <Card key={title} id={id} className="p-8 md:p-10 border-border bg-card shadow-card overflow-hidden scroll-mt-28">
             <div className="grid md:grid-cols-3 gap-8">
               <div>
                 <div className="h-14 w-14 rounded-2xl gradient-gold flex items-center justify-center mb-5 shadow-gold">

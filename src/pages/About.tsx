@@ -32,9 +32,9 @@ const About = () => (
       subtitle="A story of faith, friendship, and dedication — built one Shabbat, one shared meal, one learning circle at a time."
     />
 
-    <section className="py-20">
+    <section id="story" className="py-20 scroll-mt-28">
       <div className="container mx-auto px-4 grid md:grid-cols-2 gap-12">
-        <Card className="p-8 border-border bg-card shadow-card">
+        <Card id="mission" className="p-8 border-border bg-card shadow-card scroll-mt-28">
           <div className="text-xs font-semibold uppercase tracking-widest text-accent mb-3">Our Mission</div>
           <h2 className="font-display text-2xl font-bold text-primary mb-4">To nurture a warm, inclusive Jewish home for all.</h2>
           <p className="text-muted-foreground leading-relaxed">
@@ -51,7 +51,7 @@ const About = () => (
       </div>
     </section>
 
-    <section className="py-20 gradient-warm">
+    <section id="history" className="py-20 gradient-warm scroll-mt-28">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <div className="text-xs font-semibold uppercase tracking-widest text-accent mb-3">Our History</div>
@@ -74,7 +74,7 @@ const About = () => (
       </div>
     </section>
 
-    <section className="py-20">
+    <section id="leadership" className="py-20 scroll-mt-28">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <div className="text-xs font-semibold uppercase tracking-widest text-accent mb-3">Our Leadership</div>
@@ -96,7 +96,7 @@ const About = () => (
       </div>
     </section>
 
-    <section className="py-20 gradient-warm">
+    <section id="values" className="py-20 gradient-warm scroll-mt-28">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <div className="text-xs font-semibold uppercase tracking-widest text-accent mb-3">What We Stand For</div>
