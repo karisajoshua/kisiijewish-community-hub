@@ -110,6 +110,11 @@ const Home = () => {
   const slides = announcements ?? [];
   const [slide, setSlide] = useState(0);
   const current = slides[slide % Math.max(slides.length, 1)];
+  useEffect(() => {
+    if (slides.length < 2) return;
+    const t = setInterval(() => setSlide((s) => (s + 1) % slides.length), 5000);
+    return () => clearInterval(t);
+  }, [slides.length]);
 
   // Rotating greeting cards for "Share a moment" section
   const greetingCards = [
