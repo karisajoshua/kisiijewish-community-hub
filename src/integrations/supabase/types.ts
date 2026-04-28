@@ -95,6 +95,8 @@ export type Database = {
           notes: string | null
           payment_method: string
           postal_code: string | null
+          received_amount: number | null
+          received_at: string | null
           state_region: string | null
           status: string
           tribute_message: string | null
@@ -121,6 +123,8 @@ export type Database = {
           notes?: string | null
           payment_method?: string
           postal_code?: string | null
+          received_amount?: number | null
+          received_at?: string | null
           state_region?: string | null
           status?: string
           tribute_message?: string | null
@@ -147,6 +151,8 @@ export type Database = {
           notes?: string | null
           payment_method?: string
           postal_code?: string | null
+          received_amount?: number | null
+          received_at?: string | null
           state_region?: string | null
           status?: string
           tribute_message?: string | null
