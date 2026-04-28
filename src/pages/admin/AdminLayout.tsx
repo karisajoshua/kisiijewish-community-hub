@@ -31,6 +31,7 @@ import {
   User as UserIcon,
   LogOut,
   ExternalLink,
+  HandCoins,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { useAuth } from "@/hooks/useAuth";
@@ -62,6 +63,7 @@ const groups = [
     label: "People",
     items: [
       { to: "/admin/memberships", label: "Memberships", icon: UserCheck },
+      { to: "/admin/donations", label: "Donations", icon: HandCoins },
       { to: "/admin/contacts", label: "Messages", icon: MessageSquare },
       { to: "/admin/users", label: "Users & Roles", icon: Users },
     ],
