@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout/Layout";
 import { RequireAdmin, RequireAuth } from "@/components/admin/RequireAdmin";
+import { ScrollToHash } from "@/components/ScrollToHash";
 import Home from "./pages/Home";
 
 const About = lazy(() => import("./pages/About"));
@@ -35,6 +36,7 @@ const MembershipsAdmin = lazy(() => import("./pages/admin/MembershipsAdmin"));
 const ContactsAdmin = lazy(() => import("./pages/admin/ContactsAdmin"));
 const UsersAdmin = lazy(() => import("./pages/admin/UsersAdmin"));
 const ProfileAdmin = lazy(() => import("./pages/admin/ProfileAdmin"));
+const DonationsAdmin = lazy(() => import("./pages/admin/DonationsAdmin"));
 
 const queryClient = new QueryClient();
 
@@ -48,6 +50,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToHash />
         <Suspense fallback={pageLoader}>
           <Routes>
             <Route path="/" element={withLayout(<Home />)} />
@@ -76,6 +79,7 @@ const App = () => (
               <Route path="contacts" element={<ContactsAdmin />} />
               <Route path="users" element={<UsersAdmin />} />
               <Route path="profile" element={<ProfileAdmin />} />
+              <Route path="donations" element={<DonationsAdmin />} />
             </Route>
             <Route path="*" element={withLayout(<NotFound />)} />
           </Routes>
