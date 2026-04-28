@@ -103,7 +103,7 @@ const Home = () => {
 
   const hero = heroData ?? heroFallback;
   const promise = promiseData ?? promiseFallback;
-  const priorities = (prioritiesData ?? prioritiesFallback) as Array<{ label: string; body: string }>;
+  const priorities = (prioritiesData ?? prioritiesFallback) as Array<{ label: string; body: string; description?: string; image?: string }>;
   const ctaStrip = ctaStripData ?? ctaStripFallback;
 
   const featuredEvent = events?.[0];
@@ -111,6 +111,19 @@ const Home = () => {
   const [slide, setSlide] = useState(0);
   const current = slides[slide % Math.max(slides.length, 1)];
 
+  // Rotating greeting cards for "Share a moment" section
+  const greetingCards = [
+    { message: "Mazal Tov\non your\nsimcha!", bg: "bg-sky", fg: "text-sky-foreground" },
+    { message: "Thinking\nof you,\nchaver", bg: "bg-accent-soft", fg: "text-primary" },
+    { message: "Shabbat\nShalom", bg: "bg-primary", fg: "text-primary-foreground" },
+    { message: "With love\non your\nspecial day", bg: "bg-sky-soft", fg: "text-primary" },
+    { message: "Refuah\nShlema", bg: "bg-secondary", fg: "text-foreground" },
+  ];
+  const [cardIdx, setCardIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setCardIdx((i) => (i + 1) % greetingCards.length), 2500);
+    return () => clearInterval(t);
+  }, [greetingCards.length]);
 
   const featuredNews = news?.slice(0, 3) ?? [];
 
