@@ -188,29 +188,29 @@ const Home = () => {
         <section className="bg-sky-soft py-10">
           <div className="container mx-auto px-4">
             <div className="grid md:grid-cols-[1fr_2fr_auto] gap-6 items-center">
-              <div className="aspect-[16/10] rounded-md overflow-hidden bg-muted shadow-card">
+              <div key={`img-${slide}`} className="aspect-[16/10] rounded-md overflow-hidden bg-muted shadow-card fade-in-up">
                 <img
                   src={
+                    current.image_url ||
                     "https://images.unsplash.com/photo-1521295121783-8a321d551ad2?w=900"
                   }
                   alt={current.message}
                   className="h-full w-full object-cover"
                 />
               </div>
-              <div>
+              <div key={`txt-${slide}`} className="fade-in-up">
                 <h3 className="font-display text-xl md:text-2xl font-bold text-primary leading-snug">
                   {current.message}
                 </h3>
                 <p className="mt-3 text-muted-foreground leading-relaxed">
-                  Our community is strongest when we all show up. Stay informed,
-                  attend our gatherings, and help shape what comes next for the
-                  Kisiijewish Community.
+                  {current.body ||
+                    "Our community is strongest when we all show up. Stay informed, attend our gatherings, and help shape what comes next for the Kisiijewish Community."}
                 </p>
                 <Button
                   asChild
                   className="mt-5 bg-primary text-primary-foreground hover:bg-primary/90 uppercase tracking-wider"
                 >
-                  <Link to={current.link || "/news"}>Learn more</Link>
+                  <Link to={current.link || "/news"}>{current.cta_label || "Learn more"}</Link>
                 </Button>
                 <div className="mt-5 flex items-center gap-2">
                   {slides.map((_: any, i: number) => (
