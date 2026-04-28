@@ -192,7 +192,7 @@ export const Navbar = () => {
                     {item.label}
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
-                    <div className="w-[640px] p-6 grid grid-cols-[1fr_240px] gap-6 bg-background">
+                    <div className="w-[680px] p-6 grid grid-cols-[1fr_280px] gap-6 bg-background">
                       <ul className="grid grid-cols-2 gap-2">
                         {item.links.map((sub) => (
                           <li key={sub.title}>
@@ -212,20 +212,30 @@ export const Navbar = () => {
                           </li>
                         ))}
                       </ul>
-                      <div className="bg-sky text-sky-foreground p-5 flex flex-col justify-between">
-                        <div>
-                          <div className="text-xs uppercase tracking-widest font-semibold opacity-80 mb-2">
-                            {item.label}
-                          </div>
-                          <p className="text-sm leading-relaxed">{item.blurb}</p>
+                      <div className="rounded-md overflow-hidden shadow-card flex flex-col bg-card">
+                        <div className="aspect-[4/3] overflow-hidden bg-muted">
+                          <img
+                            src={item.image}
+                            alt={item.label}
+                            loading="lazy"
+                            className="h-full w-full object-cover"
+                          />
                         </div>
-                        <Button
-                          asChild
-                          size="sm"
-                          className="bg-background text-primary hover:bg-background/90 mt-4 uppercase tracking-wider text-xs font-semibold w-fit"
-                        >
-                          <Link to={item.to}>Explore {item.label}</Link>
-                        </Button>
+                        <div className="bg-sky text-sky-foreground p-4 flex flex-col gap-3 flex-1">
+                          <div>
+                            <div className="text-xs uppercase tracking-widest font-semibold opacity-80 mb-1">
+                              {item.label}
+                            </div>
+                            <p className="text-sm leading-relaxed">{item.blurb}</p>
+                          </div>
+                          <Button
+                            asChild
+                            size="sm"
+                            className="bg-background text-primary hover:bg-background/90 uppercase tracking-wider text-xs font-semibold w-fit mt-auto"
+                          >
+                            <Link to={item.to}>Explore {item.label}</Link>
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </NavigationMenuContent>
