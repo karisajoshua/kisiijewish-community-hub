@@ -421,17 +421,26 @@ const Home = () => {
               <Link to="/contact">Send a card</Link>
             </Button>
           </div>
-          <div className="relative h-[260px] md:h-[340px]">
-            <div className="absolute top-2 right-8 w-48 md:w-64 aspect-[4/5] bg-sky-soft rounded-lg shadow-card rotate-6 flex items-center justify-center p-6 text-center">
-              <div className="font-display font-extrabold uppercase text-primary text-xl md:text-2xl leading-tight">
-                Mazal Tov<br/>on your<br/>simcha!
-              </div>
-            </div>
-            <div className="absolute bottom-2 left-8 w-48 md:w-64 aspect-[4/5] bg-accent-soft rounded-lg shadow-soft -rotate-6 flex items-center justify-center p-6 text-center">
-              <div className="font-display font-extrabold uppercase text-primary text-xl md:text-2xl leading-tight">
-                Thinking<br/>of you,<br/>chaver
-              </div>
-            </div>
+          <div className="relative h-[320px] md:h-[400px] flex items-center justify-center">
+            {greetingCards.map((card, i) => {
+              const total = greetingCards.length;
+              const offset = (i - cardIdx + total) % total;
+              // active = 0; behind = 1, 2; rest hidden
+              let style = "opacity-0 scale-90 translate-x-0 rotate-0 z-0 pointer-events-none";
+              if (offset === 0) style = "opacity-100 scale-100 translate-x-0 rotate-0 z-30 shadow-soft";
+              else if (offset === 1) style = "opacity-80 scale-95 translate-x-8 translate-y-3 rotate-6 z-20 shadow-card";
+              else if (offset === 2) style = "opacity-60 scale-90 -translate-x-8 translate-y-6 -rotate-6 z-10 shadow-card";
+              return (
+                <div
+                  key={i}
+                  className={`absolute w-52 md:w-64 aspect-[4/5] rounded-lg flex items-center justify-center p-6 text-center transition-all duration-700 ease-out ${card.bg} ${card.fg} ${style}`}
+                >
+                  <div className="font-display font-extrabold uppercase text-xl md:text-2xl leading-tight whitespace-pre-line">
+                    {card.message}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
