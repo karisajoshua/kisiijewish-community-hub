@@ -1,72 +1,49 @@
-# Live CMS + Realtime Updates
+# Three Visual Upgrades
 
-Right now the admin dashboard saves edits to the database, but the public pages don't read from those tables — they show hardcoded text and images. On top of that, even the components that *do* read live data (events, news, announcements) only refetch on page load. We'll fix both: wire every public surface to the CMS, and add realtime so changes appear within ~1 second of saving.
+Three focused enhancements: richer mega menu, illustrated "Shows Up" accordion, and an animated rotating card stack on the "Share a moment" section.
 
-## What you'll get
+---
 
-- Edits in `/admin/homepage`, `/admin/site-settings`, `/admin/footer` immediately update the public site
-- Adding/editing/deleting events, news, announcements, gallery albums updates public pages instantly — no refresh
-- Multiple browser tabs (e.g. admin in one, site in another) stay in sync
+## 1. Mega Menu Thumbnails (Navbar)
 
-## Changes
+**File:** `src/components/layout/Navbar.tsx`
 
-### 1. Realtime infrastructure
+- Extend each `MegaItem` in the `megaMenu` array with an `image` field (Unsplash URL matching the section: about, events, programs, news, gallery, membership, donate, contact).
+- Restructure the dropdown panel grid from `[1fr_240px]` to `[1fr_280px]`. Replace the current right-side solid sky panel with a **stacked card**:
+  - Top: thumbnail image (aspect 4/3, rounded, object-cover)
+  - Bottom: sky-colored label + blurb + "Explore" button (current content preserved)
+- Keep desktop-only (mega menu is already hidden on mobile, no mobile change needed).
 
-- Enable Postgres realtime on the CMS tables: `site_settings`, `events`, `news_posts`, `announcements`, `gallery_albums`, `gallery_photos`, `profiles`
-- New hook `useRealtimeInvalidate(table, queryKey)` — subscribes to a table and invalidates the matching React Query cache on any insert/update/delete, with proper cleanup
-- Mount one global subscription provider (in `App.tsx` or a small `RealtimeBridge` component) so every page benefits without each component setting up its own channel
+---
 
-### 2. Wire the public homepage to live CMS data
+## 2. "A Community That SHOWS UP" — Image + Paragraph per Accordion Item
 
-`src/pages/Home.tsx` currently uses hardcoded strings, images, and a hardcoded `priorities` array. Replace with `useSetting()` reads (with sensible fallbacks so nothing breaks if a setting is missing):
+**File:** `src/pages/Home.tsx` (priorities accordion, ~lines 320–334)
 
-- Hero section → reads `hero` setting (eyebrow, title, subtitle, tagline words, image, primary/secondary CTAs)
-- Action bar under hero → uses hero CTA settings
-- "Our Community Promise" block → reads `promise` setting (3 headline words, two taglines, image)
-- Priorities accordion → reads `priorities` setting array
-- CTA strip → reads `cta_strip` setting (heading + buttons)
+- Extend `prioritiesFallback` items with two new fields: `description` (a longer paragraph, distinct from the short `body` label use) and `image` (representative photo URL). Keep `label` and `body` for backward compatibility with CMS data.
+- When an accordion item is opened, the `AccordionContent` becomes a 2-column grid:
+  - **Left:** the paragraph (`body` or new `description`)
+  - **Right:** rounded image thumbnail (aspect 4/3, shadow-card)
+- On mobile, stacks vertically (image first, then text).
+- The `useSetting("priorities", ...)` fallback object will include the new fields so the section renders richly even before the admin adds CMS data. Existing CMS entries that lack `image` will gracefully fall back to a default Unsplash image per index.
 
-### 3. Wire the footer to live CMS data
+---
 
-`src/components/layout/Footer.tsx` currently hardcodes columns, contact info, and socials. Update to read:
+## 3. "Share a Moment" — Rotating Color-Changing Card Stack
 
-- `footer` setting → tagline + link columns (already managed by `FooterAdmin`)
-- `contact_info` setting → email, phone, address
-- `social_links` setting → facebook/instagram/youtube/whatsapp URLs (hide icons whose URL is empty)
+**File:** `src/pages/Home.tsx` (right column, ~lines 379–390)
 
-### 4. Wire the Contact and Donate pages
+Replace the two static rotated cards with an animated stack of 4–5 greeting cards that auto-cycle every ~2.5 seconds.
 
-- `src/pages/Contact.tsx` → read `contact_info` for the displayed details
-- `src/pages/Donate.tsx` → read `donate_info` (intro, mpesa, paypal, bank)
+- Define a local array of card objects: `{ message, palette }` where palette picks from existing design tokens (`bg-sky` / `text-sky-foreground`, `bg-accent-soft` / `text-primary`, `bg-sky-soft` / `text-primary`, `bg-primary` / `text-primary-foreground`, `bg-secondary` / `text-foreground`).
+- Use a `useState` index + `useEffect` `setInterval` to advance the active card.
+- Render all cards absolutely positioned in the same container; the active card is centered/upright with shadow-soft, the next two are visible behind it slightly rotated and scaled down (stack effect). Use `transition-all duration-700 ease-out` for color, rotation, scale, and opacity transitions.
+- Preserve the existing left column (heading, paragraph, Send a card button) unchanged.
 
-### 5. Subscribe content hooks to realtime
+---
 
-Update `src/hooks/useContent.ts` and `src/hooks/useSiteSettings.ts` so each consumer also gets realtime invalidation:
+## Technical Notes
 
-- `useEvents`, `useNews`, `useAnnouncements`, `useAlbums` → subscribe to their respective tables
-- `useSetting(key)` → subscribe to `site_settings` filtered by that key
-
-### 6. Fallback safety
-
-Every `useSetting` call gets a hardcoded fallback object matching today's homepage/footer copy, so:
-- The page never renders blank while data is loading
-- If an admin clears a field, the site shows the fallback rather than breaking layout
-
-## Technical details
-
-- **Realtime enable (SQL migration):** `ALTER PUBLICATION supabase_realtime ADD TABLE public.<table>` for each of the 7 tables, plus `ALTER TABLE ... REPLICA IDENTITY FULL` so update payloads include the row data needed for filtering
-- **Hook shape:**
-  ```ts
-  useRealtimeInvalidate('site_settings', ['site_settings'])
-  // listens to postgres_changes event '*', calls queryClient.invalidateQueries
-  // cleans up channel in useEffect return
-  ```
-- **No new tables** — all existing `site_settings` keys (`hero`, `promise`, `priorities`, `cta_strip`, `footer`, `contact_info`, `social_links`, `donate_info`) are already populated by the seed migration and editable in admin
-- **No RLS changes** — public read policies already exist on every table involved
-- **Channel naming:** unique per table (e.g. `realtime:site_settings`) to avoid collisions
-
-## Out of scope
-
-- Realtime on RSVPs / contact messages / membership applications (admin-only screens, refresh-on-load is fine)
-- Editing the priorities accordion icons (text/body only, as today)
-- A "preview as draft before publish" workflow — every save goes live immediately
+- No new dependencies; uses existing Tailwind tokens (`sky`, `sky-foreground`, `sky-soft`, `accent-soft`, `primary`, `shadow-card`, `shadow-soft`, `transition-smooth`).
+- No database / CMS schema changes. The priorities admin already stores arbitrary JSON via `site_settings`, so future admin-added `image` and `description` fields will flow through automatically once the `HomepageAdmin` form is extended (out of scope here — fallback covers it).
+- Animation uses simple `setInterval` cleanup in `useEffect` — no extra animation libs.

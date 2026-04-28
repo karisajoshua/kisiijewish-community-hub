@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
   Calendar,
@@ -48,10 +48,30 @@ const promiseFallback = {
 };
 
 const prioritiesFallback = [
-  { label: "Heritage", body: "Preserving the traditions, language, and stories that shape who we are — for our children and the generations to come." },
-  { label: "Education", body: "Hebrew classes, Torah study, and lifelong learning circles open to every member of the community." },
-  { label: "Community Support", body: "Caring for elders, families in need, and welcoming newcomers with warmth and practical help." },
-  { label: "Youth & Identity", body: "Investing in the next generation through mentorship, leadership retreats, and proud Jewish identity." },
+  {
+    label: "Heritage",
+    body: "Preserving the traditions, language, and stories that shape who we are — for our children and the generations to come.",
+    description: "From Shabbat candles to the songs we sing on holy days, our heritage is the thread that ties our generations together. We honour those who came before us by keeping their traditions alive — and by passing them on with pride.",
+    image: "https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7?w=800",
+  },
+  {
+    label: "Education",
+    body: "Hebrew classes, Torah study, and lifelong learning circles open to every member of the community.",
+    description: "Learning is a lifelong gift. We host Hebrew classes for all levels, weekly Torah study, guest scholars, and informal learning circles where every question is welcome and every voice matters.",
+    image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800",
+  },
+  {
+    label: "Community Support",
+    body: "Caring for elders, families in need, and welcoming newcomers with warmth and practical help.",
+    description: "When one of us struggles, we all show up. From meals for new parents and the bereaved, to rides for elders and welcome packs for newcomers, our care network is built on the simple promise that no one walks alone.",
+    image: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800",
+  },
+  {
+    label: "Youth & Identity",
+    body: "Investing in the next generation through mentorship, leadership retreats, and proud Jewish identity.",
+    description: "Our young people are not the future — they are the present. Through mentorship, leadership retreats, youth-led services, and proud cultural celebration, we help them grow into confident Jewish adults.",
+    image: "https://images.unsplash.com/photo-1529390079861-591de354faf5?w=800",
+  },
 ];
 
 const ctaStripFallback = {
@@ -83,7 +103,7 @@ const Home = () => {
 
   const hero = heroData ?? heroFallback;
   const promise = promiseData ?? promiseFallback;
-  const priorities = (prioritiesData ?? prioritiesFallback) as Array<{ label: string; body: string }>;
+  const priorities = (prioritiesData ?? prioritiesFallback) as Array<{ label: string; body: string; description?: string; image?: string }>;
   const ctaStrip = ctaStripData ?? ctaStripFallback;
 
   const featuredEvent = events?.[0];
@@ -91,6 +111,19 @@ const Home = () => {
   const [slide, setSlide] = useState(0);
   const current = slides[slide % Math.max(slides.length, 1)];
 
+  // Rotating greeting cards for "Share a moment" section
+  const greetingCards = [
+    { message: "Mazal Tov\non your\nsimcha!", bg: "bg-sky", fg: "text-sky-foreground" },
+    { message: "Thinking\nof you,\nchaver", bg: "bg-accent-soft", fg: "text-primary" },
+    { message: "Shabbat\nShalom", bg: "bg-primary", fg: "text-primary-foreground" },
+    { message: "With love\non your\nspecial day", bg: "bg-sky-soft", fg: "text-primary" },
+    { message: "Refuah\nShlema", bg: "bg-secondary", fg: "text-foreground" },
+  ];
+  const [cardIdx, setCardIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setCardIdx((i) => (i + 1) % greetingCards.length), 2500);
+    return () => clearInterval(t);
+  }, [greetingCards.length]);
 
   const featuredNews = news?.slice(0, 3) ?? [];
 
@@ -326,8 +359,20 @@ const Home = () => {
                     {p.label}
                   </span>
                 </AccordionTrigger>
-                <AccordionContent className="text-foreground/85 leading-relaxed pb-6 pl-1">
-                  {p.body}
+                <AccordionContent className="pb-6 pl-1">
+                  <div className="grid md:grid-cols-[1fr_280px] gap-6 items-start pt-2">
+                    <p className="text-foreground/85 leading-relaxed order-2 md:order-1">
+                      {p.description || p.body}
+                    </p>
+                    <div className="order-1 md:order-2 aspect-[4/3] rounded-md overflow-hidden bg-muted shadow-card">
+                      <img
+                        src={p.image || `https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=800`}
+                        alt={p.label}
+                        loading="lazy"
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  </div>
                 </AccordionContent>
               </AccordionItem>
             ))}
@@ -376,17 +421,26 @@ const Home = () => {
               <Link to="/contact">Send a card</Link>
             </Button>
           </div>
-          <div className="relative h-[260px] md:h-[340px]">
-            <div className="absolute top-2 right-8 w-48 md:w-64 aspect-[4/5] bg-sky-soft rounded-lg shadow-card rotate-6 flex items-center justify-center p-6 text-center">
-              <div className="font-display font-extrabold uppercase text-primary text-xl md:text-2xl leading-tight">
-                Mazal Tov<br/>on your<br/>simcha!
-              </div>
-            </div>
-            <div className="absolute bottom-2 left-8 w-48 md:w-64 aspect-[4/5] bg-accent-soft rounded-lg shadow-soft -rotate-6 flex items-center justify-center p-6 text-center">
-              <div className="font-display font-extrabold uppercase text-primary text-xl md:text-2xl leading-tight">
-                Thinking<br/>of you,<br/>chaver
-              </div>
-            </div>
+          <div className="relative h-[320px] md:h-[400px] flex items-center justify-center">
+            {greetingCards.map((card, i) => {
+              const total = greetingCards.length;
+              const offset = (i - cardIdx + total) % total;
+              // active = 0; behind = 1, 2; rest hidden
+              let style = "opacity-0 scale-90 translate-x-0 rotate-0 z-0 pointer-events-none";
+              if (offset === 0) style = "opacity-100 scale-100 translate-x-0 rotate-0 z-30 shadow-soft";
+              else if (offset === 1) style = "opacity-80 scale-95 translate-x-8 translate-y-3 rotate-6 z-20 shadow-card";
+              else if (offset === 2) style = "opacity-60 scale-90 -translate-x-8 translate-y-6 -rotate-6 z-10 shadow-card";
+              return (
+                <div
+                  key={i}
+                  className={`absolute w-52 md:w-64 aspect-[4/5] rounded-lg flex items-center justify-center p-6 text-center transition-all duration-700 ease-out ${card.bg} ${card.fg} ${style}`}
+                >
+                  <div className="font-display font-extrabold uppercase text-xl md:text-2xl leading-tight whitespace-pre-line">
+                    {card.message}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

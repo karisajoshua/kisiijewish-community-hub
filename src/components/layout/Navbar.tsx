@@ -27,6 +27,7 @@ type MegaItem = {
   label: string;
   to: string;
   blurb: string;
+  image: string;
   links: SubLink[];
 };
 
@@ -36,6 +37,7 @@ const megaMenu: MegaItem[] = [
     to: "/about",
     blurb:
       "Who we are, where we come from, and what we stand for as a community.",
+    image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600",
     links: [
       { to: "/about", title: "Our Story", desc: "Our journey and purpose" },
       { to: "/about", title: "Mission & Vision", desc: "What guides us" },
@@ -48,6 +50,7 @@ const megaMenu: MegaItem[] = [
     label: "Events",
     to: "/events",
     blurb: "Gather, celebrate, and learn together year-round.",
+    image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600",
     links: [
       { to: "/events", title: "Upcoming Events", desc: "What's coming up" },
       { to: "/events", title: "Past Events", desc: "Look back at what we've done" },
@@ -59,6 +62,7 @@ const megaMenu: MegaItem[] = [
     label: "Programs",
     to: "/programs",
     blurb: "Pathways to learn, lead, serve, and belong.",
+    image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600",
     links: [
       { to: "/programs", title: "Education", desc: "Hebrew, Torah, lifelong learning" },
       { to: "/programs", title: "Youth", desc: "For our next generation" },
@@ -71,6 +75,7 @@ const megaMenu: MegaItem[] = [
     label: "News",
     to: "/news",
     blurb: "Stories, announcements, and updates from our community.",
+    image: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600",
     links: [
       { to: "/news", title: "Latest News", desc: "Fresh stories and reports" },
       { to: "/news", title: "Announcements", desc: "What you need to know" },
@@ -81,6 +86,7 @@ const megaMenu: MegaItem[] = [
     label: "Gallery",
     to: "/gallery",
     blurb: "Moments from our gatherings, captured.",
+    image: "https://images.unsplash.com/photo-1519741497674-611481863552?w=600",
     links: [
       { to: "/gallery", title: "Photo Albums", desc: "Browse by event" },
       { to: "/gallery", title: "Videos", desc: "Recorded highlights" },
@@ -91,6 +97,7 @@ const megaMenu: MegaItem[] = [
     label: "Membership",
     to: "/membership",
     blurb: "Join a warm, welcoming home for every member of the community.",
+    image: "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=600",
     links: [
       { to: "/membership", title: "Become a Member", desc: "Start your journey" },
       { to: "/membership", title: "Member Benefits", desc: "What's included" },
@@ -102,6 +109,7 @@ const megaMenu: MegaItem[] = [
     label: "Donate",
     to: "/donate",
     blurb: "Help sustain our community and the work we do.",
+    image: "https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=600",
     links: [
       { to: "/donate", title: "Ways to Give", desc: "Choose what works for you" },
       { to: "/donate", title: "Donation Instructions", desc: "Step-by-step guide" },
@@ -113,6 +121,7 @@ const megaMenu: MegaItem[] = [
     label: "Contact",
     to: "/contact",
     blurb: "Reach out — we'd love to hear from you.",
+    image: "https://images.unsplash.com/photo-1423666639041-f56000c27a9a?w=600",
     links: [
       { to: "/contact", title: "Get in Touch", desc: "Send us a message" },
       { to: "/contact", title: "Visit Us", desc: "Find our community space" },
@@ -183,7 +192,7 @@ export const Navbar = () => {
                     {item.label}
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
-                    <div className="w-[640px] p-6 grid grid-cols-[1fr_240px] gap-6 bg-background">
+                    <div className="w-[680px] p-6 grid grid-cols-[1fr_280px] gap-6 bg-background">
                       <ul className="grid grid-cols-2 gap-2">
                         {item.links.map((sub) => (
                           <li key={sub.title}>
@@ -203,20 +212,30 @@ export const Navbar = () => {
                           </li>
                         ))}
                       </ul>
-                      <div className="bg-sky text-sky-foreground p-5 flex flex-col justify-between">
-                        <div>
-                          <div className="text-xs uppercase tracking-widest font-semibold opacity-80 mb-2">
-                            {item.label}
-                          </div>
-                          <p className="text-sm leading-relaxed">{item.blurb}</p>
+                      <div className="rounded-md overflow-hidden shadow-card flex flex-col bg-card">
+                        <div className="aspect-[4/3] overflow-hidden bg-muted">
+                          <img
+                            src={item.image}
+                            alt={item.label}
+                            loading="lazy"
+                            className="h-full w-full object-cover"
+                          />
                         </div>
-                        <Button
-                          asChild
-                          size="sm"
-                          className="bg-background text-primary hover:bg-background/90 mt-4 uppercase tracking-wider text-xs font-semibold w-fit"
-                        >
-                          <Link to={item.to}>Explore {item.label}</Link>
-                        </Button>
+                        <div className="bg-sky text-sky-foreground p-4 flex flex-col gap-3 flex-1">
+                          <div>
+                            <div className="text-xs uppercase tracking-widest font-semibold opacity-80 mb-1">
+                              {item.label}
+                            </div>
+                            <p className="text-sm leading-relaxed">{item.blurb}</p>
+                          </div>
+                          <Button
+                            asChild
+                            size="sm"
+                            className="bg-background text-primary hover:bg-background/90 uppercase tracking-wider text-xs font-semibold w-fit mt-auto"
+                          >
+                            <Link to={item.to}>Explore {item.label}</Link>
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </NavigationMenuContent>
