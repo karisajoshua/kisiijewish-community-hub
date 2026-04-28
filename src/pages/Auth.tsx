@@ -50,9 +50,10 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    const dest = redirect && redirect.startsWith("/") ? redirect : "/account";
     const { error } = await supabase.auth.signUp({
       email, password,
-      options: { emailRedirectTo: window.location.origin + "/account" },
+      options: { emailRedirectTo: window.location.origin + dest },
     });
     setLoading(false);
     if (error) toast.error(error.message);
@@ -60,7 +61,8 @@ const Auth = () => {
   };
 
   const handleGoogle = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/account" });
+    const dest = redirect && redirect.startsWith("/") ? redirect : "/account";
+    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + dest });
     if (result.error) toast.error("Google sign-in failed");
   };
 
