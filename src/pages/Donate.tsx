@@ -18,21 +18,20 @@ import {
 
 type TabKey = "one_time" | "monthly";
 
-const ONE_TIME_AMOUNTS = [1000, 3000, 5000, 10000, 20000];
-const MONTHLY_AMOUNTS = [500, 1000, 2000, 5000, 10000];
+type CurrencyInfo = { code: string; symbol: string; presets: number[] };
 
-const COUNTRY_CURRENCY: Record<string, { code: string; symbol: string }> = {
-  Kenya: { code: "KES", symbol: "KSh" },
-  Uganda: { code: "UGX", symbol: "USh" },
-  Tanzania: { code: "TZS", symbol: "TSh" },
-  "United States": { code: "USD", symbol: "$" },
-  "United Kingdom": { code: "GBP", symbol: "£" },
-  Canada: { code: "CAD", symbol: "C$" },
-  Israel: { code: "ILS", symbol: "₪" },
-  Other: { code: "USD", symbol: "$" },
+const COUNTRY_CURRENCY: Record<string, CurrencyInfo> = {
+  Kenya:           { code: "KES", symbol: "KSh", presets: [1000, 3000, 5000, 10000, 20000] },
+  Uganda:          { code: "UGX", symbol: "USh", presets: [10000, 30000, 50000, 100000, 200000] },
+  Tanzania:        { code: "TZS", symbol: "TSh", presets: [5000, 10000, 25000, 50000, 100000] },
+  "United States": { code: "USD", symbol: "$",   presets: [25, 50, 100, 250, 500] },
+  "United Kingdom":{ code: "GBP", symbol: "£",   presets: [20, 50, 100, 200, 500] },
+  Canada:          { code: "CAD", symbol: "$",   presets: [25, 50, 100, 250, 500] },
+  Israel:          { code: "ILS", symbol: "₪",   presets: [50, 100, 250, 500, 1000] },
+  Other:           { code: "USD", symbol: "$",   presets: [25, 50, 100, 250, 500] },
 };
 
-const COUNTRIES = Object.keys(COUNTRY_CURRENCY);
+const MONTHLY_DIVISOR = 2;
 
 const donateFallback = {
   intro: "Your donation helps preserve our heritage, educate our youth, and support families in need.",
@@ -45,7 +44,7 @@ const donateFallback = {
 
 const tabs: { key: TabKey; label: string; icon: any; hash: string }[] = [
   { key: "one_time", label: "Make a One-Time Gift", icon: Heart, hash: "#one-time" },
-  { key: "monthly", label: "Make a Monthly Gift", icon: Calendar, hash: "#monthly" },
+  { key: "monthly",  label: "Make a Monthly Gift",  icon: Calendar, hash: "#monthly" },
 ];
 
 const Donate = () => {
@@ -114,16 +113,13 @@ const Donate = () => {
             })}
           </div>
 
-          {/* Active tab panel */}
           <div className="animate-fade-in">
-            {tab === "one_time" && <DonationForm key="one_time" donationType="one_time" amounts={ONE_TIME_AMOUNTS} settings={d} />}
-            {tab === "monthly" && <DonationForm key="monthly" donationType="monthly" amounts={MONTHLY_AMOUNTS} settings={d} />}
+            <DonationForm key={tab} donationType={tab} settings={d} />
           </div>
 
-          {/* Fine print */}
           <Card className="mt-10 p-6 md:p-8 bg-sky-soft border-sky/20">
             <p className="text-sm text-foreground/80 leading-relaxed text-center max-w-3xl mx-auto">
-              Tax receipts are issued for donations equivalent of KSh 1,000 and above. The receipt will be sent to the email address you provide.
+              Tax receipts are issued for qualifying donations. The receipt will be sent to the email address you provide.
               By donating you may receive periodic updates from the Kisii Jewish Community.
             </p>
             <p className="text-sm text-foreground/80 leading-relaxed text-center mt-4">
@@ -139,12 +135,20 @@ const Donate = () => {
   );
 };
 
-/* -------------------- Shared donation form (one-time + monthly) -------------------- */
+/* -------------------- Donation form (one-time + monthly) -------------------- */
 
 const DonationForm = ({
-  donationType, amounts, settings,
-}: { donationType: "one_time" | "monthly"; amounts: number[]; settings: any }) => {
-  const [amount, setAmount] = useState<number | "other">(amounts[1] ?? amounts[0]);
+  donationType, settings,
+}: { donationType: "one_time" | "monthly"; settings: any }) => {
+  const [country, setCountry] = useState<string>("Kenya");
+  const currency = COUNTRY_CURRENCY[country] ?? COUNTRY_CURRENCY.Other;
+  const presets = useMemo(() => {
+    return donationType === "monthly"
+      ? currency.presets.map((p) => Math.max(1, Math.round(p / MONTHLY_DIVISOR)))
+      : currency.presets;
+  }, [currency, donationType]);
+
+  const [amount, setAmount] = useState<number | "other">(presets[1] ?? presets[0]);
   const [otherAmount, setOtherAmount] = useState<string>("");
   const [donorType, setDonorType] = useState<"personal" | "company">("personal");
   const [companyName, setCompanyName] = useState("");
@@ -154,7 +158,6 @@ const DonationForm = ({
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
-  const [country, setCountry] = useState("Kenya");
   const [stateRegion, setStateRegion] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
@@ -162,21 +165,25 @@ const DonationForm = ({
   const [tributeName, setTributeName] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"mpesa" | "bank" | "paypal">("mpesa");
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState<{ ref: string; method: string } | null>(null);
+  const [done, setDone] = useState<{ ref: string; method: string; amount: number; currency: CurrencyInfo } | null>(null);
 
-  const currency = COUNTRY_CURRENCY[country] ?? COUNTRY_CURRENCY.Kenya;
+  // Reset selected amount when presets change (e.g. country switch)
+  useEffect(() => {
+    setAmount(presets[1] ?? presets[0]);
+    setOtherAmount("");
+  }, [presets]);
 
   const finalAmount = useMemo(() => {
     if (amount === "other") return Number(otherAmount) || 0;
     return Number(amount) || 0;
   }, [amount, otherAmount]);
 
-  const min = 100;
+  const min = presets[0];
   const valid = finalAmount >= min && firstName && lastName && email;
 
   const reset = () => {
     setDone(null);
-    setAmount(amounts[1] ?? amounts[0]);
+    setAmount(presets[1] ?? presets[0]);
     setOtherAmount("");
     setFirstName(""); setLastName(""); setEmail(""); setPhone("");
     setAddress(""); setCity(""); setStateRegion(""); setPostalCode("");
@@ -186,7 +193,7 @@ const DonationForm = ({
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!valid) {
-      toast.error(`Please fill in required fields (minimum ${currency.symbol} ${min}).`);
+      toast.error(`Please fill in required fields (minimum ${currency.symbol} ${min.toLocaleString()}).`);
       return;
     }
     setSubmitting(true);
@@ -216,7 +223,12 @@ const DonationForm = ({
       toast.error("Could not submit. Please try again.");
       return;
     }
-    setDone({ ref: data.id.slice(0, 8).toUpperCase(), method: paymentMethod });
+    setDone({
+      ref: data.id.slice(0, 8).toUpperCase(),
+      method: paymentMethod,
+      amount: finalAmount,
+      currency,
+    });
     toast.success("Thank you! Your pledge has been recorded.");
   };
 
@@ -230,7 +242,13 @@ const DonationForm = ({
         <p className="text-muted-foreground mb-2">
           Your reference number is <span className="font-mono font-bold text-primary">{done.ref}</span>.
         </p>
-        <p className="text-muted-foreground mb-6">Please complete your gift using the instructions below:</p>
+        <p className="text-muted-foreground mb-6">
+          Please complete your gift of{" "}
+          <span className="font-bold text-primary">
+            {done.currency.symbol} {done.amount.toLocaleString()} {done.currency.code}
+          </span>{" "}
+          using the instructions below:
+        </p>
         <Card className="p-5 bg-sky-soft border-sky/20 text-left max-w-md mx-auto">
           <h4 className="font-semibold text-primary mb-2">
             {done.method === "mpesa" ? "M-Pesa" : done.method === "bank" ? "Bank transfer" : "PayPal"}
@@ -248,13 +266,25 @@ const DonationForm = ({
   return (
     <Card className="p-6 md:p-8 border-border bg-card shadow-card">
       <form onSubmit={submit} className="space-y-8">
-        {/* Step 1 */}
-        <Step number={1} title={donationType === "monthly" ? "Monthly payment amount" : "Amount information"}>
+        {/* Step 1: Country + Amount */}
+        <Step number={1} title={donationType === "monthly" ? "Monthly gift amount" : "Gift amount"}>
+          <Field label="Your country (sets your currency) *" className="max-w-md mb-5">
+            <Select value={country} onValueChange={setCountry}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {Object.keys(COUNTRY_CURRENCY).map(c =>
+                  <SelectItem key={c} value={c}>{c} ({COUNTRY_CURRENCY[c].code})</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          </Field>
+
           <p className="text-sm text-muted-foreground mb-4">
-            Please specify the amount you'd like to donate{donationType === "monthly" ? " each month" : ""}:
+            Please specify the amount you'd like to donate{donationType === "monthly" ? " each month" : ""} in{" "}
+            <span className="font-semibold text-primary">{currency.code}</span>:
           </p>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-            {amounts.map((a) => (
+            {presets.map((a) => (
               <button
                 key={a}
                 type="button"
@@ -266,7 +296,7 @@ const DonationForm = ({
                     : "bg-background text-foreground border-border hover:border-sky"
                 )}
               >
-                {a.toLocaleString()}
+                {currency.symbol} {a.toLocaleString()}
               </button>
             ))}
             <button
@@ -287,22 +317,20 @@ const DonationForm = ({
               <Input
                 type="number"
                 min={min}
-                placeholder={`Min ${currency.symbol} ${min}`}
+                placeholder={`Min ${currency.symbol} ${min.toLocaleString()}`}
                 value={otherAmount}
                 onChange={(e) => setOtherAmount(e.target.value)}
               />
             </div>
           )}
           <p className="text-xs text-muted-foreground mt-2">
-            Amounts shown in {currency.code} ({currency.symbol}). Minimum {currency.symbol} {min}. Currency is set by the country you select below.
+            All amounts in {currency.code}. Minimum {currency.symbol} {min.toLocaleString()}.
           </p>
         </Step>
 
-        {/* Step 2 */}
+        {/* Step 2: Donor info */}
         <Step number={2} title="Donor information">
-          <p className="text-sm text-muted-foreground mb-4">
-            We'll use this to issue your tax receipt.
-          </p>
+          <p className="text-sm text-muted-foreground mb-4">We'll use this to issue your tax receipt.</p>
           <div className="mb-4">
             <Label className="text-sm">Is it a personal or company donation? *</Label>
             <RadioGroup value={donorType} onValueChange={(v) => setDonorType(v as any)} className="flex gap-6 mt-2">
@@ -328,19 +356,9 @@ const DonationForm = ({
             <Field label="Phone"><Input value={phone} onChange={(e) => setPhone(e.target.value)} /></Field>
             <Field label="Address" className="sm:col-span-2"><Input value={address} onChange={(e) => setAddress(e.target.value)} /></Field>
             <Field label="City"><Input value={city} onChange={(e) => setCity(e.target.value)} /></Field>
-            <Field label={`Country (sets currency: ${currency.code})`}>
-              <Select value={country} onValueChange={setCountry}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {COUNTRIES.map(c =>
-                    <SelectItem key={c} value={c}>{c} ({COUNTRY_CURRENCY[c].code})</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </Field>
             <Field label="County / State"><Input value={stateRegion} onChange={(e) => setStateRegion(e.target.value)} /></Field>
             <Field label="Postal code"><Input value={postalCode} onChange={(e) => setPostalCode(e.target.value)} /></Field>
-            <Field label="Account number (optional)" className="sm:col-span-2"><Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} /></Field>
+            <Field label="Account number (optional)"><Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} /></Field>
           </div>
 
           <div className="mt-4">
@@ -363,7 +381,7 @@ const DonationForm = ({
           </div>
         </Step>
 
-        {/* Step 3 */}
+        {/* Step 3: Payment */}
         <Step number={3} title="Payment method">
           {donationType === "monthly" && (
             <div className="mb-5 p-4 rounded-md bg-accent-soft border border-accent/20 text-sm text-foreground/80">
@@ -372,9 +390,7 @@ const DonationForm = ({
               <a href={`mailto:${settings.treasurer_email}`} className="text-sky font-semibold">{settings.treasurer_email}</a>.
             </div>
           )}
-          <p className="text-sm text-muted-foreground mb-4">
-            You're pledging <span className="font-bold text-primary">{currency.symbol} {finalAmount.toLocaleString()} {currency.code}</span>. Select how you'd like to give.
-          </p>
+          <p className="text-sm text-muted-foreground mb-4">Select how you'd like to give. We'll show you the instructions to complete your gift.</p>
           <RadioGroup value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as any)} className="grid sm:grid-cols-3 gap-3">
             {[
               { v: "mpesa", label: "M-Pesa", Icon: Smartphone },
@@ -401,7 +417,7 @@ const DonationForm = ({
           disabled={submitting || !valid}
           className="w-full bg-sky text-sky-foreground hover:bg-sky/90 uppercase tracking-wider font-bold py-6"
         >
-          {submitting ? "Submitting…" : <>Next: Verification <ArrowRight className="ml-2 h-4 w-4" /></>}
+          {submitting ? "Submitting…" : <>Pledge {currency.symbol} {finalAmount.toLocaleString()} <ArrowRight className="ml-2 h-4 w-4" /></>}
         </Button>
       </form>
     </Card>

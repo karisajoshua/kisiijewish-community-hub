@@ -7,11 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+} from "@/components/ui/dialog";
 import { useRealtimeInvalidate } from "@/hooks/useRealtimeInvalidate";
 import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type Donation = {
   id: string;
@@ -19,8 +22,6 @@ type Donation = {
   donation_type: string;
   frequency: string;
   amount: number;
-  received_amount: number | null;
-  received_at: string | null;
   currency: string;
   donor_name: string;
   donor_email: string;
@@ -30,19 +31,36 @@ type Donation = {
   tribute_name: string | null;
   status: string;
   notes: string | null;
+  received_amount: number | null;
+  received_at: string | null;
 };
 
 const STATUSES = ["pending", "received", "thanked", "refunded", "cancelled"];
 
-const fmt = (currency: string, amount: number | null | undefined) =>
-  amount == null ? "—" : `${currency} ${Number(amount).toLocaleString()}`;
+const formatMoney = (currency: string, amount: number) =>
+  `${currency} ${Number(amount || 0).toLocaleString()}`;
+
+const sumByCurrency = (rows: Donation[], pick: (d: Donation) => number) => {
+  const out: Record<string, number> = {};
+  for (const r of rows) {
+    const v = pick(r);
+    if (!v) continue;
+    out[r.currency] = (out[r.currency] ?? 0) + Number(v);
+  }
+  return out;
+};
+
+const renderTotals = (totals: Record<string, number>) => {
+  const entries = Object.entries(totals);
+  if (entries.length === 0) return "—";
+  return entries.map(([cur, amt]) => `${cur} ${amt.toLocaleString()}`).join(" · ");
+};
 
 const DonationsAdmin = () => {
   const qc = useQueryClient();
   useRealtimeInvalidate("donations", ["donations"]);
   const [filter, setFilter] = useState<string>("all");
-  const [receiveTarget, setReceiveTarget] = useState<Donation | null>(null);
-  const [receiveAmount, setReceiveAmount] = useState<string>("");
+  const [receivedDialog, setReceivedDialog] = useState<{ row: Donation; value: string } | null>(null);
 
   const { data: donations, isLoading } = useQuery({
     queryKey: ["donations"],
@@ -58,47 +76,40 @@ const DonationsAdmin = () => {
 
   const filtered = (donations ?? []).filter((d) => filter === "all" || d.status === filter);
 
-  const handleStatusChange = (donation: Donation, newStatus: string) => {
-    if (newStatus === donation.status) return;
-
-    if (newStatus === "received") {
-      // Open dialog to capture actual received amount
-      setReceiveTarget(donation);
-      setReceiveAmount(String(donation.received_amount ?? donation.amount ?? ""));
+  const handleStatusChange = (row: Donation, status: string) => {
+    if (status === "received") {
+      setReceivedDialog({
+        row,
+        value: row.received_amount != null ? String(row.received_amount) : String(row.amount),
+      });
       return;
     }
-
-    // Moving away from "received" clears the received amount
-    const update: Record<string, any> = { status: newStatus };
-    if (donation.status === "received") {
-      update.received_amount = null;
-      update.received_at = null;
-    }
-
-    void applyUpdate(donation.id, update, "Status updated");
+    void doStatusUpdate(row.id, { status });
   };
 
-  const applyUpdate = async (id: string, update: Record<string, any>, successMsg: string) => {
-    const { error } = await supabase.from("donations").update(update as any).eq("id", id);
-    if (error) return toast.error("Could not update");
-    toast.success(successMsg);
+  const doStatusUpdate = async (id: string, payload: Record<string, any>) => {
+    const { error } = await supabase.from("donations").update(payload as any).eq("id", id);
+    if (error) {
+      toast.error("Could not update");
+      return;
+    }
+    toast.success("Saved");
     qc.invalidateQueries({ queryKey: ["donations"] });
   };
 
-  const confirmReceive = async () => {
-    if (!receiveTarget) return;
-    const value = Number(receiveAmount);
-    if (!Number.isFinite(value) || value < 0) {
-      toast.error("Please enter a valid amount");
+  const confirmReceived = async () => {
+    if (!receivedDialog) return;
+    const v = Number(receivedDialog.value);
+    if (!Number.isFinite(v) || v <= 0) {
+      toast.error("Enter a valid amount received");
       return;
     }
-    await applyUpdate(
-      receiveTarget.id,
-      { status: "received", received_amount: value, received_at: new Date().toISOString() },
-      "Donation marked as received"
-    );
-    setReceiveTarget(null);
-    setReceiveAmount("");
+    await doStatusUpdate(receivedDialog.row.id, {
+      status: "received",
+      received_amount: v,
+      received_at: new Date().toISOString(),
+    });
+    setReceivedDialog(null);
   };
 
   const remove = async (id: string) => {
@@ -109,10 +120,11 @@ const DonationsAdmin = () => {
     qc.invalidateQueries({ queryKey: ["donations"] });
   };
 
-  const totalPledged = filtered.reduce((s, d) => s + Number(d.amount || 0), 0);
-  const totalReceived = filtered
-    .filter((d) => d.status === "received")
-    .reduce((s, d) => s + Number(d.received_amount || 0), 0);
+  const pledgedTotals = sumByCurrency(filtered, (d) => Number(d.amount));
+  const receivedTotals = sumByCurrency(
+    filtered.filter((d) => d.received_amount != null),
+    (d) => Number(d.received_amount ?? 0),
+  );
 
   return (
     <div className="space-y-6 max-w-7xl">
@@ -139,13 +151,11 @@ const DonationsAdmin = () => {
         </Card>
         <Card className="p-5">
           <div className="text-xs text-muted-foreground uppercase">Total pledged</div>
-          <div className="font-display text-2xl font-bold text-primary">{totalPledged.toLocaleString()}</div>
-          <div className="text-[10px] text-muted-foreground mt-1">Sum across currencies</div>
+          <div className="font-display text-lg font-bold text-primary">{renderTotals(pledgedTotals)}</div>
         </Card>
         <Card className="p-5 bg-sky-soft border-sky/30">
-          <div className="text-xs text-sky uppercase">Total received</div>
-          <div className="font-display text-2xl font-bold text-sky">{totalReceived.toLocaleString()}</div>
-          <div className="text-[10px] text-muted-foreground mt-1">Sum across currencies</div>
+          <div className="text-xs text-sky uppercase font-semibold">Total received</div>
+          <div className="font-display text-lg font-bold text-primary">{renderTotals(receivedTotals)}</div>
         </Card>
         <Card className="p-5">
           <div className="text-xs text-muted-foreground uppercase">Pending</div>
@@ -162,9 +172,7 @@ const DonationsAdmin = () => {
       ) : (
         <div className="space-y-3">
           {filtered.map((d) => {
-            const pledged = Number(d.amount || 0);
-            const received = d.received_amount != null ? Number(d.received_amount) : null;
-            const variance = received != null ? received - pledged : 0;
+            const variance = d.received_amount != null ? Number(d.received_amount) - Number(d.amount) : null;
             return (
               <Card key={d.id} className="p-5">
                 <div className="grid md:grid-cols-[1fr_auto] gap-4">
@@ -174,42 +182,39 @@ const DonationsAdmin = () => {
                       <Badge variant="outline" className="text-xs">{d.donation_type}</Badge>
                       {d.frequency === "monthly" && <Badge className="bg-sky text-sky-foreground text-xs">monthly</Badge>}
                       {d.is_tribute && <Badge variant="secondary" className="text-xs">tribute</Badge>}
-                      <Badge
-                        variant={d.status === "received" ? "default" : "outline"}
-                        className={d.status === "received" ? "bg-sky text-sky-foreground text-xs" : "text-xs"}
-                      >
-                        {d.status}
-                      </Badge>
+                      <Badge variant={d.status === "received" ? "default" : "outline"} className="text-xs">{d.status}</Badge>
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {d.donor_email}{d.donor_phone ? ` · ${d.donor_phone}` : ""}
                     </div>
-
-                    {/* Pledged vs received */}
-                    <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm">
+                    <div className="text-sm flex flex-wrap items-center gap-x-3 gap-y-1">
                       <span>
-                        <span className="text-muted-foreground">Pledged:</span>{" "}
-                        <span className="font-bold text-primary">{fmt(d.currency, pledged)}</span>
+                        <span className="text-xs text-muted-foreground uppercase mr-1">Pledged</span>
+                        <span className="font-bold text-primary">{formatMoney(d.currency, d.amount)}</span>
                       </span>
-                      {d.status === "received" && (
-                        <span>
-                          <span className="text-muted-foreground">Received:</span>{" "}
-                          <span className="font-bold text-sky">{fmt(d.currency, received)}</span>
-                          {received != null && variance !== 0 && (
-                            <span className={`ml-2 text-xs ${variance > 0 ? "text-emerald-600" : "text-amber-600"}`}>
-                              ({variance > 0 ? "+" : ""}{variance.toLocaleString()} {variance > 0 ? "over" : "short"})
+                      {d.received_amount != null && (
+                        <>
+                          <span>
+                            <span className="text-xs text-sky uppercase mr-1 font-semibold">Received</span>
+                            <span className="font-bold text-sky">{formatMoney(d.currency, d.received_amount)}</span>
+                          </span>
+                          {variance !== null && variance !== 0 && (
+                            <span className={cn(
+                              "text-xs font-semibold",
+                              variance > 0 ? "text-emerald-600" : "text-destructive"
+                            )}>
+                              {variance > 0 ? `+${variance.toLocaleString()} over` : `${variance.toLocaleString()} short`}
                             </span>
                           )}
                           {d.received_at && (
-                            <span className="ml-2 text-xs text-muted-foreground">
+                            <span className="text-xs text-muted-foreground">
                               on {format(parseISO(d.received_at), "MMM d, yyyy")}
                             </span>
                           )}
-                        </span>
+                        </>
                       )}
-                      <span className="text-muted-foreground text-xs">via {d.payment_method}</span>
+                      <span className="text-muted-foreground">· via {d.payment_method}</span>
                     </div>
-
                     {d.tribute_name && <div className="text-xs text-muted-foreground">In tribute to: {d.tribute_name}</div>}
                     {d.notes && <div className="text-xs text-muted-foreground italic">{d.notes}</div>}
                     <div className="text-xs text-muted-foreground">{format(parseISO(d.created_at), "MMM d, yyyy · h:mm a")}</div>
@@ -221,18 +226,6 @@ const DonationsAdmin = () => {
                         {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                       </SelectContent>
                     </Select>
-                    {d.status === "received" && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setReceiveTarget(d);
-                          setReceiveAmount(String(d.received_amount ?? d.amount ?? ""));
-                        }}
-                      >
-                        Edit received
-                      </Button>
-                    )}
                     <Button variant="ghost" size="sm" onClick={() => remove(d.id)} className="text-destructive">
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -244,46 +237,31 @@ const DonationsAdmin = () => {
         </div>
       )}
 
-      {/* Receive dialog */}
-      <Dialog
-        open={!!receiveTarget}
-        onOpenChange={(open) => {
-          if (!open) {
-            setReceiveTarget(null);
-            setReceiveAmount("");
-          }
-        }}
-      >
+      <Dialog open={!!receivedDialog} onOpenChange={(o) => !o && setReceivedDialog(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Mark donation as received</DialogTitle>
+            <DialogTitle>Mark as received</DialogTitle>
             <DialogDescription>
-              {receiveTarget && (
-                <>Pledged amount: <strong>{fmt(receiveTarget.currency, receiveTarget.amount)}</strong>. Enter the actual amount you received.</>
+              {receivedDialog && (
+                <>Pledged: <strong>{formatMoney(receivedDialog.row.currency, receivedDialog.row.amount)}</strong> from{" "}
+                {receivedDialog.row.donor_name}. Enter the actual amount received.</>
               )}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="received-amount">Amount received ({receiveTarget?.currency})</Label>
+            <Label htmlFor="received-amount">Amount received ({receivedDialog?.row.currency})</Label>
             <Input
               id="received-amount"
               type="number"
-              min={0}
-              value={receiveAmount}
-              onChange={(e) => setReceiveAmount(e.target.value)}
-              autoFocus
+              min="0"
+              step="0.01"
+              value={receivedDialog?.value ?? ""}
+              onChange={(e) => setReceivedDialog((prev) => prev ? { ...prev, value: e.target.value } : prev)}
             />
-            <p className="text-xs text-muted-foreground">
-              You can enter a different amount if the actual gift differs from what was pledged.
-            </p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setReceiveTarget(null); setReceiveAmount(""); }}>
-              Cancel
-            </Button>
-            <Button onClick={confirmReceive} className="bg-sky text-sky-foreground hover:bg-sky/90">
-              Confirm received
-            </Button>
+            <Button variant="outline" onClick={() => setReceivedDialog(null)}>Cancel</Button>
+            <Button onClick={confirmReceived}>Confirm</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

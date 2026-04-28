@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,33 +11,45 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Mail, Phone, MapPin, Facebook, Instagram, Youtube, MessageCircle } from "lucide-react";
+import { Mail, Phone, MapPin, Facebook, Instagram, Youtube, MessageCircle, Lock } from "lucide-react";
 import { useSetting } from "@/hooks/useSiteSettings";
+import { useAuth } from "@/hooks/useAuth";
 
 const schema = z.object({
-  name: z.string().trim().min(1, "Required").max(100),
-  email: z.string().trim().email("Invalid email").max(255),
   subject: z.string().trim().min(1, "Required").max(200),
   message: z.string().trim().min(1, "Required").max(5000),
 });
 type FormData = z.infer<typeof schema>;
 
 const Contact = () => {
+  const { user, loading: authLoading } = useAuth();
   const [submitting, setSubmitting] = useState(false);
+  const [displayName, setDisplayName] = useState<string>("");
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({ resolver: zodResolver(schema) });
   const { data: contact } = useSetting<any>("contact_info", { email: "hello@kisiijewish.org", phone: "+254 700 000 000", address: "Kisii Town, Kenya" });
   const { data: social } = useSetting<any>("social_links", { facebook: "", instagram: "", youtube: "", whatsapp: "" });
   const c = contact ?? {};
   const s = social ?? {};
 
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle()
+      .then(({ data }) => setDisplayName(data?.display_name ?? user.email?.split("@")[0] ?? ""));
+  }, [user]);
+
   const onSubmit = async (data: FormData) => {
+    if (!user) return;
     setSubmitting(true);
     const { error } = await supabase.from("contact_messages").insert({
-      name: data.name, email: data.email, subject: data.subject, message: data.message,
+      user_id: user.id,
+      name: displayName || user.email?.split("@")[0] || "Member",
+      email: user.email!,
+      subject: data.subject,
+      message: data.message,
     });
     setSubmitting(false);
     if (error) return toast.error("Could not send. Please try again.");
-    toast.success("Message sent! We'll respond shortly.");
+    toast.success("Message sent! We'll respond within the system.");
     reset();
   };
 
@@ -95,34 +108,59 @@ const Contact = () => {
 
           <Card id="message" className="lg:col-span-3 p-7 border-border bg-card shadow-soft scroll-mt-28">
             <h2 className="font-display text-2xl font-bold text-primary mb-1">Send us a message</h2>
-            <p className="text-sm text-muted-foreground mb-6">We typically respond within 1–2 days.</p>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">Name *</Label>
-                  <Input id="name" {...register("name")} />
-                  {errors.name && <p className="text-xs text-destructive mt-1">{errors.name.message}</p>}
+            <p className="text-sm text-muted-foreground mb-6">
+              Members can write to us right here — we reply within the system, so you'll see our response in your account inbox.
+            </p>
+
+            {authLoading ? (
+              <p className="text-sm text-muted-foreground">Loading…</p>
+            ) : !user ? (
+              <div className="rounded-lg border-2 border-dashed border-sky/30 bg-sky-soft p-8 text-center space-y-4">
+                <div className="h-12 w-12 rounded-full bg-sky text-sky-foreground mx-auto flex items-center justify-center">
+                  <Lock className="h-5 w-5" />
                 </div>
                 <div>
-                  <Label htmlFor="email">Email *</Label>
-                  <Input id="email" type="email" {...register("email")} />
-                  {errors.email && <p className="text-xs text-destructive mt-1">{errors.email.message}</p>}
+                  <h3 className="font-display text-lg font-bold text-primary">Sign in to send a message</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Replies happen inside your account, so we need to know who's writing. It only takes a minute to create an account.
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                  <Button asChild className="bg-sky text-sky-foreground hover:bg-sky/90">
+                    <Link to={`/auth?redirect=${encodeURIComponent("/contact#message")}`}>Sign in</Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <Link to={`/auth?redirect=${encodeURIComponent("/contact#message")}`}>Create an account</Link>
+                  </Button>
                 </div>
               </div>
-              <div>
-                <Label htmlFor="subject">Subject *</Label>
-                <Input id="subject" {...register("subject")} />
-                {errors.subject && <p className="text-xs text-destructive mt-1">{errors.subject.message}</p>}
-              </div>
-              <div>
-                <Label htmlFor="message">Message *</Label>
-                <Textarea id="message" rows={6} {...register("message")} />
-                {errors.message && <p className="text-xs text-destructive mt-1">{errors.message.message}</p>}
-              </div>
-              <Button type="submit" disabled={submitting} className="w-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-gold">
-                {submitting ? "Sending..." : "Send Message"}
-              </Button>
-            </form>
+            ) : (
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label>From</Label>
+                    <Input value={displayName} readOnly className="bg-muted" />
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <Input value={user.email ?? ""} readOnly className="bg-muted" />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="subject">Subject *</Label>
+                  <Input id="subject" {...register("subject")} />
+                  {errors.subject && <p className="text-xs text-destructive mt-1">{errors.subject.message}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="message">Message *</Label>
+                  <Textarea id="message" rows={6} {...register("message")} />
+                  {errors.message && <p className="text-xs text-destructive mt-1">{errors.message.message}</p>}
+                </div>
+                <Button type="submit" disabled={submitting} className="w-full bg-accent text-accent-foreground hover:bg-accent/90 shadow-gold">
+                  {submitting ? "Sending..." : "Send Message"}
+                </Button>
+              </form>
+            )}
           </Card>
         </div>
 

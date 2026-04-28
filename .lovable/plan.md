@@ -1,94 +1,53 @@
-## Goals
+## Issues found
 
-1. Donate page: remove the "Send a Card" tab entirely.
-2. Currency on the donate form changes automatically based on the donor's selected country.
-3. When an admin moves a donation from `pending` to `received`, capture the actual amount received and show both the **pledged** amount and the **received** amount everywhere donations are displayed.
+### 1. Verification email never sent
+The new user (`jojeham13@gmail.com`) signed up via **Google OAuth**, which does NOT trigger a verification email — Google has already verified the address, so Supabase auto-confirms it. They are already a fully active user. No email was supposed to be sent.
 
----
+However, if a user signs up via **email + password**, they currently also won't get an email. Reason: the email send log is empty (`0 rows`), and `notify.kisiijewishcommunity.com` is **still in Pending status — DNS records have not been verified yet**. Until DNS is verified, Lovable cannot send branded emails on your behalf, so signup confirmations are dropped.
 
-## 1. Remove "Send a Card" from the donate page
-
-**File: `src/pages/Donate.tsx`**
-- Remove `card` from `TabKey`, `tabs[]`, `CARD_AMOUNTS`, `OCCASIONS`, the `#card` hash mapping, and the `<SendCardForm/>` render branch.
-- Tab grid becomes `sm:grid-cols-2` (One-Time + Monthly only).
-- Delete the `SendCardForm` component definition (and unused `Gift`, `MailIcon` imports).
-
-No DB changes — existing `donation_type='tribute_card'` rows in admin still display fine.
+### 2. Google sign-in shows the Lovable logo
+On the Google consent screen, users currently see "Sign in to continue to Lovable" with the Lovable logo. This is because the project is using Lovable's **managed/shared Google OAuth credentials**. To show your own community name and logo, you need your own Google OAuth Client ID + Secret registered under your own Google Cloud project, then plug them into Cloud → Authentication.
 
 ---
 
-## 2. Country-based currency
+## Plan
 
-Map country → currency at the top of `Donate.tsx`:
+### Step 1 — Confirm the email situation (no code change)
+- Tell you clearly: Google sign-ups don't need verification emails (auto-verified). They appear instantly as active users.
+- Email-password sign-ups will start receiving the branded verification email **automatically** as soon as DNS verification completes for `notify.kisiijewishcommunity.com`. No code change required on our side; the templates and edge function are already deployed and waiting.
+- Provide a button to open Cloud → Emails so you can monitor DNS verification status and click "Verify Domain" to retry the check.
 
-```ts
-const COUNTRY_CURRENCY: Record<string, { code: string; symbol: string }> = {
-  Kenya: { code: "KES", symbol: "KSh" },
-  Uganda: { code: "UGX", symbol: "USh" },
-  Tanzania: { code: "TZS", symbol: "TSh" },
-  "United States": { code: "USD", symbol: "$" },
-  "United Kingdom": { code: "GBP", symbol: "£" },
-  Canada: { code: "CAD", symbol: "C$" },
-  Israel: { code: "ILS", symbol: "₪" },
-  Other: { code: "USD", symbol: "$" },
-};
-```
+### Step 2 — Optional fallback while DNS verifies
+If you want users to be able to sign up and use the site immediately even before DNS verifies, I can enable **auto-confirm** on email signups temporarily (so they don't need to click a verification link). I'd revert this once DNS is verified. This is a one-line auth setting change. **I'll only do this if you confirm** — by default, email verification stays required for security.
 
-In `DonationForm`:
-- Derive `const currency = COUNTRY_CURRENCY[country] ?? COUNTRY_CURRENCY.Kenya;`
-- Replace hardcoded "KES" / "KSh" labels in amount chips, helper text, "Other" placeholder, and the fine-print receipt copy with `currency.symbol` / `currency.code`.
-- On insert, send `currency: currency.code` instead of the hardcoded `"KES"`.
-- Amount preset chips stay as numeric values (we are not doing FX conversion — same numeric presets, just relabeled with the new symbol). A small note added: "Amounts shown in {currency.code}."
+### Step 3 — Rebrand Google OAuth (remove Lovable logo)
+This requires you to create your own Google OAuth credentials. I cannot do this from inside Lovable — it must happen in your Google Cloud Console. I'll guide you with the exact steps:
 
-The "Tax receipts are issued for donations of KSh 1,000 and above" line in the outer card stays generic ("equivalent of KSh 1,000") since it's informational.
+1. Go to Google Cloud Console → create/select a project named "Kisii Jewish Community"
+2. Configure the OAuth Consent Screen:
+   - App name: **Kisii Jewish Community**
+   - User support email: your community email
+   - App logo: upload the community logo (the same one used in emails)
+   - Authorized domains: `kisiijewishcommunity.com`
+   - Scopes: `openid`, `userinfo.email`, `userinfo.profile`
+3. Create credentials → OAuth Client ID → Web application
+   - Authorized redirect URI: I'll provide the exact callback URL from Cloud → Authentication → Google
+4. Copy the **Client ID** and **Client Secret** back into Cloud → Authentication → Sign-in methods → Google → "Use your own credentials"
 
----
+After that, the consent screen will display your community name + logo instead of Lovable.
 
-## 3. Pledged vs. received tracking
+I'll provide a button to open Cloud → Authentication so you can paste the credentials.
 
-### Schema migration
-
-Add two columns to `donations`:
-
-```sql
-ALTER TABLE public.donations
-  ADD COLUMN received_amount numeric,
-  ADD COLUMN received_at timestamptz;
-```
-
-- `amount` continues to mean **pledged amount** (existing semantics preserved).
-- `received_amount` is null until status transitions to `received`.
-- No CHECK constraint; validated in app + admin UI.
-
-### Admin UI (`src/pages/admin/DonationsAdmin.tsx`)
-
-When the admin changes status to `received` via the existing `<Select>`:
-- Open a small inline confirm UI (input prefilled with `amount`) asking "Amount received" before saving.
-- Save updates `{ status: 'received', received_amount: <value>, received_at: now() }` in one call.
-- Other status transitions work as before (don't touch received fields, but if moved away from `received`, clear `received_amount` / `received_at`).
-
-Card display per donation:
-- Show **Pledged: {currency} {amount}** always.
-- If `status === 'received'`: also show **Received: {currency} {received_amount}** in green; if it differs from pledged, show a small "(short by …)" or "(over by …)" hint.
-
-Stats row (top of page):
-- **Total pledged** = sum of `amount` over filtered set (existing).
-- **Total received** = sum of `received_amount` where status='received' (new tile).
-- **Pending** count stays.
-- All amount totals continue to display in KES symbol on the admin (mixed currency note added underneath totals: "Mixed-currency totals shown as raw sums; see individual records for currency.") — we are not doing FX conversion in this iteration.
-
-### Type regeneration
-`src/integrations/supabase/types.ts` regenerates automatically after the migration.
+### Step 4 — Verify
+- Once DNS is green and a test email signup is performed, confirm the branded email arrives.
+- Once Google credentials are saved, sign out and sign in again with Google — the consent screen should now show "Continue to Kisii Jewish Community" with your logo.
 
 ---
 
-## Files touched
+## What I will NOT do
+- Won't change Auth.tsx — the code is correct.
+- Won't re-scaffold email templates — they're already in place.
+- Won't modify `src/integrations/lovable/index.ts` (auto-generated).
 
-- migration: `supabase/migrations/<new>_donations_received.sql` (adds `received_amount`, `received_at`)
-- `src/pages/Donate.tsx` — remove Card tab, add country→currency mapping, send dynamic currency on insert
-- `src/pages/admin/DonationsAdmin.tsx` — received-amount prompt on status change, pledged vs received display, new total tile
-
-## Out of scope
-
-- Live FX conversion between currencies (presets stay as raw numbers in the selected currency).
-- Editing past Send-a-Card records (existing rows remain visible in admin).
+## Files touched (only if you approve Step 2)
+- Auth config flag: `mailer_autoconfirm = true` (temporary), reverted later.
