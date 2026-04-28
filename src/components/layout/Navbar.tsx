@@ -27,6 +27,7 @@ type MegaItem = {
   label: string;
   to: string;
   blurb: string;
+  image: string;
   links: SubLink[];
 };
 
@@ -36,6 +37,7 @@ const megaMenu: MegaItem[] = [
     to: "/about",
     blurb:
       "Who we are, where we come from, and what we stand for as a community.",
+    image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600",
     links: [
       { to: "/about", title: "Our Story", desc: "Our journey and purpose" },
       { to: "/about", title: "Mission & Vision", desc: "What guides us" },
