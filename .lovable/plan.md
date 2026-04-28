@@ -1,91 +1,64 @@
-# Plan: Mega Menu Anchors + Redesigned Donate Page
+## Why you didn't see a difference
 
-## Part 1 — Mega menu deep-links to sections
+The donate page and admin still show the old code: the "Send a Card" tab is still there, currency is hard-coded to KES, and the admin has no "Total Received" tile or received-amount workflow. The previous edit attempts didn't actually overwrite the files. I'll rewrite both files cleanly this time.
 
-Right now every sub-link in the mega menu (e.g. About → "Our Story", "Mission & Vision", "Leadership"…) points to the same page root (e.g. `/about`). I'll change them to anchor URLs (`/about#mission`, `/about#leadership`, etc.) and add matching `id="..."` attributes on each section so clicking a sub-link scrolls directly to that section.
+## 1. Donate page — remove "Send a Card", add country-based currency
 
-**Files updated:**
-- `src/components/layout/Navbar.tsx` — change every `to:` in `megaMenu` sub-links from `/page` to `/page#section-id`.
-- `src/pages/About.tsx` — add `id="story"`, `id="mission"`, `id="leadership"`, `id="history"`, `id="values"` on the corresponding sections.
-- `src/pages/Events.tsx` — `id="upcoming"`, `id="past"`, `id="holidays"`, `id="rsvp"`.
-- `src/pages/Programs.tsx` — `id="education"`, `id="youth"`, `id="cultural"`, `id="support"`, `id="volunteer"`.
-- `src/pages/News.tsx` — `id="latest"`, `id="announcements"`, `id="newsletter"`.
-- `src/pages/Gallery.tsx` — `id="albums"`, `id="videos"`, `id="submit"`.
-- `src/pages/Membership.tsx` — `id="join"`, `id="benefits"`, `id="renew"`, `id="directory"`.
-- `src/pages/Donate.tsx` — `id="ways"`, `id="instructions"`, `id="sponsor"`, `id="faq"` (after redesign below).
-- `src/pages/Contact.tsx` — `id="message"`, `id="visit"`, `id="leadership"`, `id="prayer"`.
-- `src/App.tsx` — add a small `ScrollToHash` component (uses `useLocation`, scrolls to `#hash` on route change with `scroll-margin-top` for the sticky navbar) so anchor links work even when navigating between pages.
+`src/pages/Donate.tsx`:
+- Remove the "card" tab, `CARD_AMOUNTS`, `OCCASIONS`, and the entire `SendCardForm` component.
+- Tabs become a 2-up grid: One-Time Gift, Monthly Gift.
+- Add a `COUNTRY_CURRENCY` map (Kenya → KES/KSh, Uganda → UGX/USh, Tanzania → TZS/TSh, US → USD/$, UK → GBP/£, Canada → CAD/$, Israel → ILS/₪, Other → USD/$).
+- All amount chips, "Other" placeholder, helper text ("All amounts in …"), tax-receipt fine print, and the success card now read from the selected country's currency.
+- The insert into `donations` writes the resolved `currency` (not always "KES").
 
-Add `scroll-mt-28` (matches `h-28` navbar height) on each anchor section so headings aren't hidden under the sticky header.
+## 2. Admin donations — pledged vs received
 
-## Part 2 — Redesigned Donate page (UJA-style)
+`src/pages/admin/DonationsAdmin.tsx`:
+- Add `received_amount` and `received_at` to the `Donation` type.
+- Summary tiles become: Records · Total Pledged · **Total Received** · Pending.
+  - Totals are grouped per currency (e.g. "KES 45,000 · USD 200") so mixed-currency data stays correct.
+- When admin changes a row's status to **received**, open a small dialog asking for "Amount received" (defaults to the pledged amount), then update `status`, `received_amount`, and `received_at = now()`.
+- Each card shows pledged amount, and if `received_amount` is set, also "Received: <currency> <amount>" with a green/red variance label (e.g. "+500 over", "−200 short").
 
-Replace the current Donate page layout with the design from the screenshot: clean white background, centered headline, three large pill-style toggle buttons (**Make a One-Time Gift**, **Make a Monthly Gift**, **Send a Card**), and on click reveal a multi-step form below — exactly mirroring the PDF flow.
+## 3. Gate the contact form behind sign-in
 
-### Layout
-```text
-[ Hero: "Donate Today" + supporting paragraph ]
+Reason: replies happen inside the system, so we need an authenticated sender.
 
-[  ☐ ONE-TIME GIFT    ☐ MONTHLY GIFT    ☐ SEND A CARD  ]   ← toggle pills
+`src/pages/Contact.tsx`:
+- Use the existing `useAuth()` hook.
+- If `!user`: replace the form area with a card that says "Sign in to send us a message — replies are delivered to your account inbox" and a button linking to `/auth?redirect=/contact#message`.
+- If signed in: prefill name (from `profiles.display_name`) and email (from `user.email`) as read-only, and on submit insert into `contact_messages` with a new `user_id` column so the admin can reply back to the right account.
 
-[ Selected tab content appears below in a card ]
-```
+DB migration:
+- `ALTER TABLE contact_messages ADD COLUMN user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL;`
+- Tighten the insert RLS policy: only `authenticated` users may insert, and `user_id` must equal `auth.uid()`.
+- (Select/update/delete remain admin-only as today.)
 
-### Tab 1 — One-Time Gift (from One_time_donation.pdf)
-- **Step 1 — Amount:** preset chips `KSh 1,000 / 3,000 / 5,000 / 10,000 / 20,000` + "Other" with min input.
-- **Step 2 — Donor info:** Personal/Company toggle, First/Last name, Address, City, Country (default Kenya), County/State, Postal code, Phone, Email, optional Account number, "Tribute in honour/memory" Yes/No.
-- **Step 3 — Payment method:** radio choices for **M-Pesa**, **Bank transfer**, **PayPal** (we don't process cards directly — selecting one shows the matching instructions pulled from the existing `donate_info` site setting). A "Submit pledge" button records the donor's intent in a new `donations` table and shows a thank-you panel with reference instructions.
+`src/pages/Auth.tsx`: honour a `?redirect=` query param after login so users return to `/contact#message` (small change to `redirectByRole` and the OAuth `redirect_uri`).
 
-### Tab 2 — Monthly Gift (from monthly_gift.pdf)
-- Same three-step structure with monthly amount chips `KSh 500 / 1,000 / 2,000 / 5,000 / 10,000`.
-- Important notice block: "To pause or cancel, contact us" + treasurer email/phone (pulled from site settings).
-- Saves to `donations` with `frequency = 'monthly'`.
+(Future step — not in this plan: build an in-app reply inbox for users at `/account/messages`. Right now admins still reply via email, but every message is tied to a user account so we have the foundation.)
 
-### Tab 3 — Send a Card
-- Simple form: recipient name + email, sender name + email, occasion (dropdown), personal message, donation amount.
-- Saves to `donations` with `is_tribute = true` and tribute fields.
+## 4. Branded verification email
 
-### Footer block (always visible)
-The fine-print box from the screenshot: tax-receipt note, contact phone/email for questions — content editable from admin via `donate_info` setting.
+Set up Lovable's branded auth emails so signups get a Kisii Jewish Community-branded "Confirm your email" message instead of the default Supabase template.
 
-### Backend
-New table `donations` (admins read; anyone insert with validation):
-- `id`, `created_at`
-- `donation_type` ('one_time' | 'monthly' | 'tribute_card')
-- `amount`, `currency` (default 'KES')
-- `frequency` ('once' | 'monthly')
-- `donor_type` ('personal' | 'company'), donor name/email/phone/address fields
-- `payment_method` ('mpesa' | 'bank' | 'paypal' | 'pending')
-- `is_tribute` boolean, tribute name, tribute message, recipient email
-- `status` default 'pending'
-- `notes`
+Steps:
+1. Check if an email sender domain is already configured for the project. If not, surface the email setup dialog so you can pick a domain (e.g. `notify.kisiijewishcommunity.com`).
+2. Once a domain exists, scaffold the auth email templates (signup confirmation, magic link, password recovery, invite, email change, reauthentication).
+3. Style the templates with the site brand: logo from `src/assets`/`public`, primary `sky` colour from `src/index.css`, display font, "Kisii Jewish Community" wordmark, friendly Shalom-style copy, and white email body background.
+4. Deploy the `auth-email-hook` edge function. Branded emails activate automatically once DNS verifies (monitored under Cloud → Emails). Default Supabase emails keep sending in the meantime so signups never break.
 
-RLS: public INSERT with field-length checks; admins SELECT/DELETE.
+Email confirmation is already required (auto-confirm is off), so as soon as branded emails go live, every new signup will receive the branded "Verify your email" message before they can sign in.
 
-New admin page `src/pages/admin/DonationsAdmin.tsx` to view/manage submissions, added to the admin sidebar.
+## Files touched
 
-## Technical details
+- `src/pages/Donate.tsx` — full rewrite (remove Send-a-Card, add currency).
+- `src/pages/admin/DonationsAdmin.tsx` — pledged vs received UI + dialog.
+- `src/pages/Contact.tsx` — gate behind auth, prefill from profile.
+- `src/pages/Auth.tsx` — support `?redirect=` after login.
+- New migration — `contact_messages.user_id` + tightened RLS.
+- New `supabase/functions/auth-email-hook/` + `supabase/functions/_shared/email-templates/*.tsx` (scaffolded, then brand-styled).
 
-- Tab state managed with `useState<'one_time' | 'monthly' | 'card'>` + URL hash sync (`#one-time`, `#monthly`, `#card`) so mega-menu deep-links can open a specific tab.
-- Form built with `react-hook-form` + `zod` (already in stack via shadcn `Form`).
-- Amount chips toggle a controlled value; "Other" reveals a number input.
-- After successful submit, the form is replaced by a confirmation card showing: reference number (last 8 of `id`), chosen payment method instructions, and a "Make another gift" button.
-- Realtime invalidation of `donations` query on the admin list using existing `useRealtimeInvalidate` hook.
-- Pill toggle styled with `bg-sky-soft` (inactive) and `bg-sky text-sky-foreground` (active), matching the screenshot's light-blue look.
+## Open question
 
-## Files created
-- `supabase/migrations/<ts>_donations.sql`
-- `src/pages/admin/DonationsAdmin.tsx`
-- `src/components/donate/DonateTabs.tsx`
-- `src/components/donate/OneTimeForm.tsx`
-- `src/components/donate/MonthlyForm.tsx`
-- `src/components/donate/SendCardForm.tsx`
-- `src/components/ScrollToHash.tsx`
-
-## Files edited
-- `src/pages/Donate.tsx` (full rewrite around new tabs)
-- `src/components/layout/Navbar.tsx` (anchor URLs in megaMenu)
-- `src/pages/About.tsx`, `Events.tsx`, `Programs.tsx`, `News.tsx`, `Gallery.tsx`, `Membership.tsx`, `Contact.tsx` (section IDs + `scroll-mt-28`)
-- `src/App.tsx` (mount `ScrollToHash`)
-- `src/pages/admin/AdminLayout.tsx` (add Donations nav item)
-- `src/integrations/supabase/types.ts` (auto-regenerated)
+For branded auth emails I need to set up a sender subdomain (default suggestion: `notify.kisiijewishcommunity.com`). Confirm that's the subdomain you want, or tell me a different one — then on approval I'll run the setup and scaffold step in one go.

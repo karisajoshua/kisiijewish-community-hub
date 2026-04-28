@@ -55,6 +55,7 @@ export type Database = {
           message: string
           name: string
           subject: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -63,6 +64,7 @@ export type Database = {
           message: string
           name: string
           subject: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -71,6 +73,7 @@ export type Database = {
           message?: string
           name?: string
           subject?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -95,6 +98,8 @@ export type Database = {
           notes: string | null
           payment_method: string
           postal_code: string | null
+          received_amount: number | null
+          received_at: string | null
           state_region: string | null
           status: string
           tribute_message: string | null
@@ -121,6 +126,8 @@ export type Database = {
           notes?: string | null
           payment_method?: string
           postal_code?: string | null
+          received_amount?: number | null
+          received_at?: string | null
           state_region?: string | null
           status?: string
           tribute_message?: string | null
@@ -147,6 +154,8 @@ export type Database = {
           notes?: string | null
           payment_method?: string
           postal_code?: string | null
+          received_amount?: number | null
+          received_at?: string | null
           state_region?: string | null
           status?: string
           tribute_message?: string | null
