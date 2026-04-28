@@ -50,6 +50,7 @@ const megaMenu: MegaItem[] = [
     label: "Events",
     to: "/events",
     blurb: "Gather, celebrate, and learn together year-round.",
+    image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600",
     links: [
       { to: "/events", title: "Upcoming Events", desc: "What's coming up" },
       { to: "/events", title: "Past Events", desc: "Look back at what we've done" },
@@ -61,6 +62,7 @@ const megaMenu: MegaItem[] = [
     label: "Programs",
     to: "/programs",
     blurb: "Pathways to learn, lead, serve, and belong.",
+    image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600",
     links: [
       { to: "/programs", title: "Education", desc: "Hebrew, Torah, lifelong learning" },
       { to: "/programs", title: "Youth", desc: "For our next generation" },
@@ -73,6 +75,7 @@ const megaMenu: MegaItem[] = [
     label: "News",
     to: "/news",
     blurb: "Stories, announcements, and updates from our community.",
+    image: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=600",
     links: [
       { to: "/news", title: "Latest News", desc: "Fresh stories and reports" },
       { to: "/news", title: "Announcements", desc: "What you need to know" },
@@ -83,6 +86,7 @@ const megaMenu: MegaItem[] = [
     label: "Gallery",
     to: "/gallery",
     blurb: "Moments from our gatherings, captured.",
+    image: "https://images.unsplash.com/photo-1519741497674-611481863552?w=600",
     links: [
       { to: "/gallery", title: "Photo Albums", desc: "Browse by event" },
       { to: "/gallery", title: "Videos", desc: "Recorded highlights" },
@@ -93,6 +97,7 @@ const megaMenu: MegaItem[] = [
     label: "Membership",
     to: "/membership",
     blurb: "Join a warm, welcoming home for every member of the community.",
+    image: "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=600",
     links: [
       { to: "/membership", title: "Become a Member", desc: "Start your journey" },
       { to: "/membership", title: "Member Benefits", desc: "What's included" },
@@ -104,6 +109,7 @@ const megaMenu: MegaItem[] = [
     label: "Donate",
     to: "/donate",
     blurb: "Help sustain our community and the work we do.",
+    image: "https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=600",
     links: [
       { to: "/donate", title: "Ways to Give", desc: "Choose what works for you" },
       { to: "/donate", title: "Donation Instructions", desc: "Step-by-step guide" },
@@ -115,6 +121,7 @@ const megaMenu: MegaItem[] = [
     label: "Contact",
     to: "/contact",
     blurb: "Reach out — we'd love to hear from you.",
+    image: "https://images.unsplash.com/photo-1423666639041-f56000c27a9a?w=600",
     links: [
       { to: "/contact", title: "Get in Touch", desc: "Send us a message" },
       { to: "/contact", title: "Visit Us", desc: "Find our community space" },
